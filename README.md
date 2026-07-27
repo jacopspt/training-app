@@ -1,22 +1,23 @@
-# Training App — JacopsPT
+# JacopsPT — Over 40 Fitness
 
-App per creare e gestire schede di allenamento con programmazione settimanale, diario e analisi del volume.
+Suite completa per personal trainer: schede di allenamento, diario, analisi volume, piano alimentare, gestione clienti e scheda atleta.
 
-## Funzionalità
+## L'app: `JacopsPT.html`
 
-- **Schede**: crea più schede (A, B, C…), ogni esercizio con serie per settimana (4–12 settimane). Carico fisso, rep range o EMOM; carico in kg o in % del 1RM (calcolato anche in automatico dai log con formula di Epley). Supersets, note, duplica/riordina esercizi.
-- **Diario**: per ogni settimana inserisci kg, ripetizioni e RPE effettivi, con confronto (Δ) rispetto al pianificato.
-- **Volume**: grafici volume/intensità/densità per settimana, globali e per gruppo muscolare.
-- **Progressi**: storico del 1RM stimato settimana per settimana per ogni esercizio, calcolato dai set effettivi registrati nel diario (con confronto rispetto al 1RM impostato).
-- **Progressioni**: salva schemi di progressione riutilizzabili e applicali a qualsiasi esercizio.
-- **Stampa**: anteprima scheda o diario con stampa diretta / salvataggio PDF dal browser.
-- **Salvataggio**: automatico in localStorage, più esporta/importa backup JSON (pannello 📁 Schede).
+Un unico file autonomo: **si apre con doppio click nel browser** (Chrome, Edge, Safari, Firefox), senza installazioni né server. Include:
 
-## Avvio
+- **⚡ Costruttore Split** — composizione rapida della suddivisione settimanale
+- **Schede** — programmazione per settimana (4–12), serie con tipo (Fisso, Range, Max Rep, EMOM, Tempo, Test), TUT, recuperi, RPE, % 1RM, supersets, link YouTube per esercizio
+- **Diario** — registrazione di kg/ripetizioni/RPE effettivi con confronto sul pianificato
+- **Volume** — grafici volume/intensità/densità per settimana e gruppo muscolare
+- **🍎 Alimentazione** — fabbisogno energetico (BMR/TDEE), macro target e piano settimanale generato con AI (dentro claude.ai) o via prompt da copiare
+- **🗂 Clienti / 👤 Atleta** — anagrafica, quadro clinico, plicometria, circonferenze, test massimali, somatotipo, check fotografici, stampa del diario brandizzato
+- **Salvataggio automatico** in localStorage con backup di sicurezza, più **Export/Import** del backup completo su file
 
-```bash
-npm install
-npm run dev      # sviluppo su http://localhost:5173
-npm run build    # build di produzione in dist/
-npm run preview  # anteprima della build
-```
+I dati vivono nel browser in cui si usa l'app: fare Export del backup periodicamente.
+
+## Struttura del repository
+
+- `JacopsPT.html` — l'app completa pronta all'uso (bundle autonomo)
+- `app-src/app.dc.js` — il sorgente dell'app estratto dal bundle, per revisione e modifiche future
+- `legacy/` — la prima bozza (progetto Vite/React), superata ma conservata per riferimento
