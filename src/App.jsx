@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, useCallback } from "react";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 // ---- COSTANTI ----
@@ -37,6 +37,7 @@ function getSsl(esercizi,eid){ const e=esercizi.find(x=>x.id===eid); if(!e||e.su
 function ripStr(s){ if(s.tipo==="fisso")return s.rip||""; if(s.tipo==="range")return s.ripMin&&s.ripMax?`${s.ripMin}-${s.ripMax}`:""; if(s.tipo==="emom")return s.minuti&&s.rip?`${s.minuti}'x${s.rip}`:""; return""; }
 function caricoStr(s){ return s.usePct?(s.pct?`${s.pct}%`:""):(s.kg?`${s.kg}kg`:""); }
 function deepClone(x){ return JSON.parse(JSON.stringify(x)); }
+function esc(s){ return String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function densitaColor(r){ const m={"15s":"#c0392b","30s":"#e67e22","45s":"#f39c12","60s":"#27ae60","90s":"#2d6a9f","2min":"#1e3a5f","3min":"#16537e","4min":"#0d3b5e","5min":"#0a2d4a"}; return m[r]||"#2d6a9f"; }
 function pctChg(c,p){ if(!p||p===0)return null; return Math.round((c-p)/p*100); }
 
@@ -115,7 +116,7 @@ function SettColonna({sett,wi,rm,col,onUpdSerie,onTogPct,onChgTipo,onAddSerie,on
 }
 
 // ---- CARD ESERCIZIO ----
-function EsCard({e,rm,col,WL,scheda,esDB,gtag,ssLabel:ssl,inSS,uE,delEs,uSerie,togPct,chgTipo,addSerie,delSerie}){
+function EsCard({e,rm,col,WL,scheda,esDB,gtag,ssLabel:ssl,inSS,uE,delEs,dupEs,moveEs,uSerie,togPct,chgTipo,addSerie,delSerie}){
   return(
     <div style={{marginBottom:inSS?"0":"1.75rem",border:inSS?"none":`1px solid ${col}33`,borderBottom:`1px solid ${col}22`,borderRadius:inSS?0:8,overflow:"hidden"}}>
       <div style={{background:`${col}12`,borderBottom:`2px solid ${col}55`,padding:"8px 14px",display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
@@ -135,7 +136,14 @@ function EsCard({e,rm,col,WL,scheda,esDB,gtag,ssLabel:ssl,inSS,uE,delEs,uSerie,t
           {!e.oneRMauto&&<input type="number" placeholder="kg" value={e.oneRM} onChange={ev=>uE(e.id,x=>({...x,oneRM:ev.target.value}))} style={{...S.i(50)}}/>}
           <span style={{fontSize:14,fontWeight:700,color:col}}>{rm?`${Math.round(rm)}kg`:"—"}</span>
         </div>
-        <button onClick={()=>delEs(e.id)} style={{padding:"4px 10px",fontSize:12,border:"0.5px solid var(--color-border-tertiary)",borderRadius:6,background:"transparent",color:"#aaa",cursor:"pointer"}}>✕</button>
+        <div style={{display:"flex",gap:3}}>
+          {!inSS&&moveEs&&<>
+            <button title="Sposta su" onClick={()=>moveEs(e.id,-1)} style={{padding:"4px 7px",fontSize:11,border:"0.5px solid var(--color-border-tertiary)",borderRadius:6,background:"transparent",color:"#aaa",cursor:"pointer"}}>↑</button>
+            <button title="Sposta giù" onClick={()=>moveEs(e.id,1)} style={{padding:"4px 7px",fontSize:11,border:"0.5px solid var(--color-border-tertiary)",borderRadius:6,background:"transparent",color:"#aaa",cursor:"pointer"}}>↓</button>
+          </>}
+          {dupEs&&<button title="Duplica esercizio" onClick={()=>dupEs(e.id)} style={{padding:"4px 8px",fontSize:11,border:"0.5px solid var(--color-border-tertiary)",borderRadius:6,background:"transparent",color:"#aaa",cursor:"pointer"}}>⧉</button>}
+          <button title="Elimina esercizio" onClick={()=>delEs(e.id)} style={{padding:"4px 10px",fontSize:12,border:"0.5px solid var(--color-border-tertiary)",borderRadius:6,background:"transparent",color:"#aaa",cursor:"pointer"}}>✕</button>
+        </div>
       </div>
       <div style={{overflowX:"auto"}}>
         <table style={{width:"100%",borderCollapse:"collapse",minWidth:300}}>
@@ -299,7 +307,7 @@ function VolumeTab({schede,nW,get1RM}){
     const keys=Object.keys(row._rc);
     row.rec=keys.length?keys.sort((a,b)=>row._rc[b]-row._rc[a])[0]:"90s";
     return row;
-  }),[schede,nW]);
+  }),[schede,nW,get1RM]);
 
   const gruppiAttivi=GRUPPI.filter(g=>dati.some(d=>d[g].volume>0));
   const hasData=dati.some(d=>d.volume>0);
@@ -422,6 +430,7 @@ function VolumeTab({schede,nW,get1RM}){
 // ---- ANTEPRIMA STAMPA ----
 function AnteprimaStampa({tipo,scheda,schede,settimana,WL,get1RM,getLog,onClose}){
   const taRef=useRef();
+  const ifRef=useRef();
   const [copied,setCopied]=useState(false);
   const tl={fisso:"Fisso",range:"Range",emom:"EMOM"};
 
@@ -454,11 +463,11 @@ function AnteprimaStampa({tipo,scheda,schede,settimana,WL,get1RM,getLog,onClose}
   function buildHTML(){
     let body="";
     if(tipo==="scheda"&&scheda){
-      body=`${headerHTML}<h2>${scheda.nome} — ${WL.length} settimane</h2>`;
+      body=`${headerHTML}<h2>${esc(scheda.nome)} — ${WL.length} settimane</h2>`;
       scheda.esercizi.forEach(e=>{
         const rm=get1RM(e); const ssl=getSsl(scheda.esercizi,e.id);
-        body+=`<h3>${ssl?`[${ssl}] `:""}${e.nome||"—"} — ${e.gruppo}${rm?` (1RM: ${Math.round(rm)}kg)`:""}</h3>`;
-        if(e.note)body+=`<div class="note">Note: ${e.note}</div>`;
+        body+=`<h3>${ssl?`[${ssl}] `:""}${esc(e.nome)||"—"} — ${e.gruppo}${rm?` (1RM: ${Math.round(rm)}kg)`:""}</h3>`;
+        if(e.note)body+=`<div class="note">Note: ${esc(e.note)}</div>`;
         body+=`<table><thead><tr>`;
         WL.forEach((w,wi)=>{body+=`<th style="min-width:80px">${w} (${e.settimane[wi]?.serie.length||0} ser.)</th>`;});
         body+=`</tr></thead><tbody><tr>`;
@@ -471,18 +480,18 @@ function AnteprimaStampa({tipo,scheda,schede,settimana,WL,get1RM,getLog,onClose}
           body+=`</td>`;
         });
         body+=`</tr></tbody></table>`;
-        if(e.commento)body+=`<div class="note">Commento: ${e.commento}</div>`;
+        if(e.commento)body+=`<div class="note">Commento: ${esc(e.commento)}</div>`;
       });
     }
     if(tipo==="diario"){
       body=`${headerHTML}<h2>Diario allenamento — W${settimana+1}</h2>`;
       schede.forEach(s=>{
-        body+=`<h3>${s.nome}</h3>`;
+        body+=`<h3>${esc(s.nome)}</h3>`;
         s.esercizi.forEach(e=>{
           const rm=get1RM(e); const ssl=getSsl(s.esercizi,e.id);
           const sett=e.settimane[settimana];
           if(!sett)return;
-          body+=`<div style="font-weight:700;font-size:9pt;margin:6px 0 3px">${ssl?`[${ssl}] `:""}${e.nome||"—"} — ${e.gruppo}${rm?` (1RM: ${Math.round(rm)}kg)`:""}</div>`;
+          body+=`<div style="font-weight:700;font-size:9pt;margin:6px 0 3px">${ssl?`[${ssl}] `:""}${esc(e.nome)||"—"} — ${e.gruppo}${rm?` (1RM: ${Math.round(rm)}kg)`:""}</div>`;
           body+=`<table><thead><tr><th>S.</th><th>Tipo</th><th>Rec.</th><th>RPE</th><th>Pianificato</th><th style="min-width:52px">Eff. kg</th><th style="min-width:52px">Eff. rip</th><th style="min-width:52px">RPE eff.</th></tr></thead><tbody>`;
           sett.serie.forEach((s2,si)=>{
             const kgEq=s2.usePct&&s2.pct&&rm?Math.round(rm*parseFloat(s2.pct)/100):(s2.kg||"");
@@ -498,23 +507,35 @@ function AnteprimaStampa({tipo,scheda,schede,settimana,WL,get1RM,getLog,onClose}
   }
 
   const html=buildHTML();
-  function copyHTML(){if(taRef.current){taRef.current.select();document.execCommand("copy");setCopied(true);setTimeout(()=>setCopied(false),2000);}}
+  function stampa(){
+    const w=ifRef.current?.contentWindow;
+    if(w){w.focus();w.print();}
+  }
+  async function copyHTML(){
+    try{await navigator.clipboard.writeText(html);}
+    catch{if(taRef.current){taRef.current.select();document.execCommand("copy");}}
+    setCopied(true);setTimeout(()=>setCopied(false),2000);
+  }
+  function scarica(){
+    const blob=new Blob([html],{type:"text/html"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;a.download=tipo==="scheda"?"scheda.html":`diario-W${settimana+1}.html`;
+    a.click();URL.revokeObjectURL(url);
+  }
 
   return(
     <div style={{position:"fixed",top:0,left:0,right:0,bottom:0,background:"var(--color-background-primary)",zIndex:9999,overflow:"auto",padding:16,display:"flex",flexDirection:"column",gap:12}}>
       <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
         <span style={{fontSize:14,fontWeight:700}}>📄 {tipo==="scheda"?"Scheda":"Diario W"+(settimana+1)}</span>
+        <button onClick={stampa} style={S.btn(S.info)}>🖨 Stampa / PDF</button>
+        <button onClick={scarica} style={S.btn()}>⬇ Scarica HTML</button>
+        <button onClick={copyHTML} style={S.btn(copied?S.success:{})}>{copied?"✓ Copiato!":"Copia HTML"}</button>
         <button onClick={onClose} style={{...S.btn(),marginLeft:"auto"}}>✕ Chiudi</button>
       </div>
-      <iframe srcDoc={html} style={{flex:1,border:"1px solid var(--color-border-tertiary)",borderRadius:8,minHeight:400,background:"#fff"}} title="anteprima"/>
-      <div style={{background:"rgba(41,128,185,0.08)",border:"0.5px solid rgba(41,128,185,0.3)",borderRadius:8,padding:"12px 14px"}}>
-        <p style={{fontSize:12,fontWeight:700,margin:"0 0 6px",color:"var(--color-text-info)"}}>Come stampare:</p>
-        <p style={{fontSize:11,color:"var(--color-text-secondary)",margin:"0 0 8px"}}>1. Copia HTML → 2. Incollalo in un file <strong>stampa.html</strong> → 3. Aprilo nel browser → 4. <strong>Ctrl+P</strong></p>
-        <div style={{display:"flex",gap:8,alignItems:"center"}}>
-          <textarea ref={taRef} readOnly value={html} style={{flex:1,height:56,fontSize:10,fontFamily:"monospace",border:"0.5px solid var(--color-border-tertiary)",borderRadius:6,padding:6,resize:"none",background:"var(--color-background-secondary)"}}/>
-          <button onClick={copyHTML} style={S.btn(copied?S.success:S.info)}>{copied?"✓ Copiato!":"Copia HTML"}</button>
-        </div>
-      </div>
+      <iframe ref={ifRef} srcDoc={html} style={{flex:1,border:"1px solid var(--color-border-tertiary)",borderRadius:8,minHeight:400,background:"#fff"}} title="anteprima"/>
+      <textarea ref={taRef} readOnly value={html} style={{position:"absolute",left:-9999,top:0,width:1,height:1,opacity:0}} aria-hidden="true" tabIndex={-1}/>
+      <p style={{fontSize:11,color:"var(--color-text-secondary)",margin:0}}>💡 <strong>Stampa / PDF</strong> apre direttamente la finestra di stampa del browser (scegli "Salva come PDF" per un file).</p>
     </div>
   );
 }
@@ -588,12 +609,6 @@ function saveToStorage(data) {
   }
 }
 
-function usePersistedState(key, defaultValue) {
-  const saved = loadFromStorage();
-  const [state, setState] = useState(() => (saved && saved[key] !== undefined) ? saved[key] : defaultValue);
-  return [state, setState];
-}
-
 // ---- APP ----
 export default function App(){
   const [tab,setTab]=useState("schede");
@@ -640,17 +655,54 @@ export default function App(){
     return () => clearTimeout(t);
   }, [schede, activeId, logs, esDB, cartella, schedeSalvate]);
 
-  const scheda=schede.find(s=>s.id===activeId);
+  const scheda=schede.find(s=>s.id===activeId)||schede[0];
   const nW=scheda?.nW||8;
   const WL=Array.from({length:nW},(_,i)=>`W${i+1}`);
+  const maxW=Math.max(...schede.map(s=>s.nW||8),1);
+
+  // se il numero di settimane si riduce, riporta la settimana selezionata nel range
+  useEffect(()=>{ if(settimana>=maxW) setSettimana(maxW-1); },[maxW,settimana]);
+  // se la scheda attiva è stata rimossa/caricata da salvataggio, riallinea l'id
+  useEffect(()=>{ if(scheda&&scheda.id!==activeId) setActiveId(scheda.id); },[scheda,activeId]);
 
   const uS=fn=>setSchede(p=>p.map(s=>s.id===activeId?fn(s):s));
   const uE=(eid,fn)=>uS(s=>({...s,esercizi:s.esercizi.map(e=>e.id===eid?fn(e):e)}));
-  function addScheda(){const n=makeScheda();n.nome=`Scheda ${String.fromCharCode(65+schede.length)}`;setSchede(p=>[...p,n]);setActiveId(n.id);}
+  function addScheda(){
+    const n=makeScheda();
+    // prima lettera libera, così dopo un'eliminazione non si creano nomi duplicati
+    const usate=new Set(schede.map(s=>s.nome));
+    let i=0; while(i<26&&usate.has(`Scheda ${String.fromCharCode(65+i)}`))i++;
+    n.nome=`Scheda ${String.fromCharCode(65+Math.min(i,25))}`;
+    setSchede(p=>[...p,n]);setActiveId(n.id);
+  }
+  function dupScheda(id){
+    const orig=schede.find(s=>s.id===id); if(!orig)return;
+    const cl=deepClone(orig); cl.id=uid(); cl.nome=`${orig.nome} (copia)`;
+    cl.esercizi=cl.esercizi.map(e=>({...e,id:uid(),settimane:e.settimane.map(st=>({serie:st.serie.map(sr=>({...sr,id:uid()}))}))}));
+    setSchede(p=>[...p,cl]);setActiveId(cl.id);
+  }
   function delScheda(id){if(schede.length===1)return;const r=schede.filter(s=>s.id!==id);setSchede(r);setActiveId(r[0].id);}
   function chgNW(n){uS(s=>({...s,nW:n,esercizi:s.esercizi.map(e=>resizeEsSett(e,n))}));}
   function addEs(){uS(s=>({...s,esercizi:[...s.esercizi,makeEs(s.nW)]}));}
-  function delEs(eid){uS(s=>({...s,esercizi:s.esercizi.filter(e=>e.id!==eid)}));}
+  function dupEs(eid){uS(s=>{
+    const i=s.esercizi.findIndex(e=>e.id===eid); if(i<0)return s;
+    const cl=deepClone(s.esercizi[i]); cl.id=uid();
+    cl.settimane=cl.settimane.map(st=>({serie:st.serie.map(sr=>({...sr,id:uid()}))}));
+    const arr=[...s.esercizi]; arr.splice(i+1,0,cl);
+    return {...s,esercizi:arr};
+  });}
+  function moveEs(eid,dir){uS(s=>{
+    const i=s.esercizi.findIndex(e=>e.id===eid);
+    const j=i+dir;
+    if(i<0||j<0||j>=s.esercizi.length)return s;
+    const arr=[...s.esercizi]; [arr[i],arr[j]]=[arr[j],arr[i]];
+    return {...s,esercizi:arr};
+  });}
+  function delEs(eid){
+    const es=scheda?.esercizi.find(e=>e.id===eid);
+    if(es&&es.nome&&!confirm(`Eliminare "${es.nome}"?`))return;
+    uS(s=>({...s,esercizi:s.esercizi.filter(e=>e.id!==eid)}));
+  }
   function uSerie(eid,wi,sid,f,v){uE(eid,e=>({...e,settimane:e.settimane.map((st,i)=>i===wi?{...st,serie:st.serie.map(sr=>sr.id===sid?{...sr,[f]:v}:sr)}:st)}));}
   function togPct(eid,wi,sid){uE(eid,e=>({...e,settimane:e.settimane.map((st,i)=>i===wi?{...st,serie:st.serie.map(sr=>sr.id===sid?{...sr,usePct:!sr.usePct}:sr)}:st)}));}
   function chgTipo(eid,wi,sid,t){uE(eid,e=>({...e,settimane:e.settimane.map((st,i)=>i===wi?{...st,serie:st.serie.map(sr=>sr.id===sid?chgTipoSerie(sr,t):sr)}:st)}));}
@@ -671,13 +723,47 @@ export default function App(){
     })})));
   }
   function saveSchede(sv){setSchedeSalvate(p=>[...p,sv]);setShowSalvaModale(false);}
-  function loadSchede(mode,sv){const cl=sv.schede.map(s=>({...deepClone(s),id:uid()}));if(mode==="sovrascrivi"){setSchede(cl);setActiveId(cl[0].id);}else{setSchede(p=>{const m=[...p,...cl];setActiveId(cl[0].id);return m;});}}
+  function loadSchede(mode,sv){
+    const cl=sv.schede.map(s=>({...deepClone(s),id:uid()}));
+    if(mode==="sovrascrivi")setSchede(cl);
+    else setSchede(p=>[...p,...cl]);
+    setActiveId(cl[0].id);
+    setShowSchSalvate(false);
+  }
   function delSchedaSalvata(id){setSchedeSalvate(p=>p.filter(x=>x.id!==id));}
-  function get1RM(e){if(e.oneRMauto){let best=null;Object.values(logs).forEach(b=>Object.values(b).forEach(arr=>arr.filter(l=>l.esId===e.id).forEach(l=>{const kg=parseFloat(l.kg),rip=parseFloat(l.rip);if(!isNaN(kg)&&!isNaN(rip)&&rip>0&&rip<=36){const rm=kg*(36/(37-rip));if(best===null||rm>best)best=rm;}})));return best;}return parseFloat(e.oneRM)||null;}
+  const get1RM=useCallback(function get1RM(e){if(e.oneRMauto){let best=null;Object.values(logs).forEach(b=>Object.values(b).forEach(arr=>arr.filter(l=>l.esId===e.id).forEach(l=>{const kg=parseFloat(l.kg),rip=parseFloat(l.rip);if(!isNaN(kg)&&!isNaN(rip)&&rip>0&&rip<=36){const rm=kg*(36/(37-rip));if(best===null||rm>best)best=rm;}})));return best;}return parseFloat(e.oneRM)||null;},[logs]);
   function getLog(sid,wi,esId,si){return logs[sid]?.[wi]?.find(l=>l.esId===esId&&l.serieIdx===si)||{kg:"",rip:"",rpe:""};}
   function setLog(sid,wi,esId,si,f,v){setLogs(p=>{const b={...p[sid]};const arr=[...(b[wi]||[])];const idx=arr.findIndex(l=>l.esId===esId&&l.serieIdx===si);if(idx>=0)arr[idx]={...arr[idx],[f]:v};else arr.push({esId,serieIdx:si,kg:"",rip:"",rpe:"",[f]:v});b[wi]=arr;return {...p,[sid]:b};});}
-  function addEsDB(g,n){if(!n.trim())return;setEsDB(p=>({...p,[g]:[...p[g],n.trim()]}));}
-  function delEsDB(g,n){setEsDB(p=>({...p,[g]:p[g].filter(x=>x!==n)}));}
+  function addEsDB(g,n){if(!n.trim())return;setEsDB(p=>{const cur=p[g]||[];if(cur.includes(n.trim()))return p;return {...p,[g]:[...cur,n.trim()]};});}
+  function delEsDB(g,n){setEsDB(p=>({...p,[g]:(p[g]||[]).filter(x=>x!==n)}));}
+
+  const fileRef=useRef();
+  function esportaBackup(){
+    const data={version:1,exportDate:new Date().toISOString(),schede,activeId,logs,esDB,cartella,schedeSalvate};
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;a.download=`training-backup-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();URL.revokeObjectURL(url);
+  }
+  function importaBackup(file){
+    const reader=new FileReader();
+    reader.onload=()=>{
+      try{
+        const d=JSON.parse(reader.result);
+        if(!Array.isArray(d.schede)||!d.schede.length)throw new Error("formato non valido");
+        setSchede(d.schede);
+        setActiveId(d.schede.some(s=>s.id===d.activeId)?d.activeId:d.schede[0].id);
+        setLogs(d.logs||{});
+        setEsDB(d.esDB||ESDB0);
+        setCartella(d.cartella||[]);
+        setSchedeSalvate(d.schedeSalvate||[]);
+      }catch{
+        alert("File non valido: seleziona un backup esportato da questa app.");
+      }
+    };
+    reader.readAsText(file);
+  }
 
   const tuttiEs=schede.flatMap(s=>s.esercizi);
   const gtag=g=><span style={{display:"inline-block",padding:"2px 6px",borderRadius:4,fontSize:10,fontWeight:700,background:GCOL[g]+"22",color:GCOL[g],border:`1px solid ${GCOL[g]}44`}}>{g}</span>;
@@ -723,8 +809,14 @@ export default function App(){
         <div style={{marginBottom:"1.5rem",border:"0.5px solid var(--color-border-tertiary)",borderRadius:8,padding:"1rem",background:"var(--color-background-secondary)"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12,flexWrap:"wrap",gap:8}}>
             <p style={{fontSize:11,fontWeight:700,margin:0,letterSpacing:1,color:"var(--color-text-secondary)"}}>📁 SCHEDE SALVATE</p>
-            <button onClick={()=>setShowSalvaModale(true)} style={S.btn(S.success)}>💾 Salva schede attuali</button>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+              <button onClick={()=>setShowSalvaModale(true)} style={S.btn(S.success)}>💾 Salva schede attuali</button>
+              <button onClick={esportaBackup} style={S.btn(S.info)}>⬇ Esporta backup</button>
+              <button onClick={()=>fileRef.current?.click()} style={S.btn()}>⬆ Importa backup</button>
+              <input ref={fileRef} type="file" accept="application/json,.json" style={{display:"none"}} onChange={e=>{const f=e.target.files?.[0];if(f)importaBackup(f);e.target.value="";}}/>
+            </div>
           </div>
+          <p style={{fontSize:10,color:"var(--color-text-tertiary)",margin:"0 0 10px"}}>I dati sono salvati solo in questo browser: esporta un backup periodicamente per non perderli.</p>
           {schedeSalvate.length===0?<div style={{textAlign:"center",padding:"1.5rem",color:"#aaa"}}><div style={{fontSize:28,marginBottom:6}}>📁</div><p style={{fontSize:12,margin:0}}>Nessuna scheda salvata.</p></div>:
           <div style={{display:"flex",flexDirection:"column",gap:8}}>{schedeSalvate.map(sv=><SchedaSalvataCard key={sv.id} sv={sv} onLoad={(m,s)=>loadSchede(m,s)} onDelete={()=>delSchedaSalvata(sv.id)}/>)}</div>}
         </div>
@@ -768,7 +860,8 @@ export default function App(){
           <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:"1.25rem",flexWrap:"wrap"}}>
             <input value={scheda.nome} onChange={e=>uS(s=>({...s,nome:e.target.value}))} style={{...S.i(200),fontSize:15,fontWeight:700,border:"1px solid var(--color-border-primary)",textAlign:"left"}}/>
             <div style={{display:"flex",alignItems:"center",gap:4,flexWrap:"wrap"}}><span style={{fontSize:11,color:"var(--color-text-secondary)"}}>Settimane:</span>{Array.from({length:9},(_,i)=>i+4).map(n=><button key={n} onClick={()=>chgNW(n)} style={S.wb(nW===n)}>{n}</button>)}</div>
-            {schede.length>1&&<button onClick={()=>delScheda(scheda.id)} style={S.btn({color:"#aaa",fontSize:11})}>Elimina</button>}
+            <button onClick={()=>dupScheda(scheda.id)} style={S.btn({fontSize:11})}>⧉ Duplica</button>
+            {schede.length>1&&<button onClick={()=>{if(confirm(`Eliminare "${scheda.nome}"?`))delScheda(scheda.id);}} style={S.btn({color:"#aaa",fontSize:11})}>Elimina</button>}
             <div style={{marginLeft:"auto",display:"flex",gap:8}}>
               <button onClick={()=>setShowSalvaModale(true)} style={S.btn(S.success)}>💾 Salva</button>
               <button onClick={()=>setAnteprima("scheda")} style={S.btn(S.info)}>🖨 Stampa</button>
@@ -779,7 +872,7 @@ export default function App(){
               const e=group.es[0];
               const rm=get1RM(e);
               const col=GCOL[e.gruppo]||"#1e3a5f";
-              return <EsCard key={e.id} e={e} rm={rm} col={col} WL={WL} scheda={scheda} esDB={esDB} gtag={gtag} uE={uE} delEs={delEs} uSerie={uSerie} togPct={togPct} chgTipo={chgTipo} addSerie={addSerie} delSerie={delSerie}/>;
+              return <EsCard key={e.id} e={e} rm={rm} col={col} WL={WL} scheda={scheda} esDB={esDB} gtag={gtag} uE={uE} delEs={delEs} dupEs={dupEs} moveEs={moveEs} uSerie={uSerie} togPct={togPct} chgTipo={chgTipo} addSerie={addSerie} delSerie={delSerie}/>;
             }
             const letter=group.letter;
             const col2=GCOL[group.es[0]?.gruppo]||"#555";
@@ -791,7 +884,7 @@ export default function App(){
                 {group.es.map((e,ei)=>{
                   const rm=get1RM(e);
                   const col=GCOL[e.gruppo]||"#1e3a5f";
-                  return <EsCard key={e.id} e={e} rm={rm} col={col} WL={WL} scheda={scheda} esDB={esDB} gtag={gtag} ssLabel={`${letter}${ei+1}`} inSS uE={uE} delEs={delEs} uSerie={uSerie} togPct={togPct} chgTipo={chgTipo} addSerie={addSerie} delSerie={delSerie}/>;
+                  return <EsCard key={e.id} e={e} rm={rm} col={col} WL={WL} scheda={scheda} esDB={esDB} gtag={gtag} ssLabel={`${letter}${ei+1}`} inSS uE={uE} delEs={delEs} dupEs={dupEs} uSerie={uSerie} togPct={togPct} chgTipo={chgTipo} addSerie={addSerie} delSerie={delSerie}/>;
                 })}
               </div>
             );
@@ -804,7 +897,7 @@ export default function App(){
         <div>
           <div style={{display:"flex",gap:6,alignItems:"center",marginBottom:"1rem",flexWrap:"wrap"}}>
             <span style={{fontSize:12,color:"var(--color-text-secondary)"}}>Settimana:</span>
-            {Array.from({length:nW},(_,i)=><button key={i} onClick={()=>setSettimana(i)} style={S.wb(settimana===i)}>W{i+1}</button>)}
+            {Array.from({length:maxW},(_,i)=><button key={i} onClick={()=>setSettimana(i)} style={S.wb(settimana===i)}>W{i+1}</button>)}
             <button onClick={()=>setAnteprima("diario")} style={{...S.btn(S.info),marginLeft:"auto"}}>🖨 Stampa diario</button>
           </div>
           {schede.map(s=>(
@@ -861,7 +954,7 @@ export default function App(){
         </div>
       )}
 
-      {tab==="volume"&&<VolumeTab schede={schede} nW={nW} get1RM={get1RM}/>}
+      {tab==="volume"&&<VolumeTab schede={schede} nW={maxW} get1RM={get1RM}/>}
     </div>
   );
 }
