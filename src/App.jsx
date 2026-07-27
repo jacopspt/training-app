@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect, useCallback } from "react";
-import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { ComposedChart, LineChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from "recharts";
 
 // ---- COSTANTI ----
 const RECUPERI = ["15s","30s","45s","60s","90s","2min","3min","4min","5min"];
@@ -427,6 +427,121 @@ function VolumeTab({schede,nW,get1RM}){
   );
 }
 
+// ---- TAB PROGRESSI (storico 1RM stimato) ----
+function e1RM(kg,rip){
+  if(isNaN(kg)||isNaN(rip)||rip<=0||rip>36)return null;
+  return kg*(36/(37-rip)); // Brzycki, stessa formula del 1RM auto
+}
+
+function ProgressiTab({schede,logs,maxW}){
+  const [sel,setSel]=useState(null);
+  const WL=Array.from({length:maxW},(_,i)=>`W${i+1}`);
+
+  // stesso esercizio in più schede (es. "Panca piana" in A e B) → un'unica curva
+  const esercizi=useMemo(()=>{
+    const byName={};
+    schede.forEach(s=>s.esercizi.forEach(e=>{
+      if(!e.nome)return;
+      if(!byName[e.nome])byName[e.nome]={nome:e.nome,gruppo:e.gruppo,ids:new Set(),oneRM:null};
+      byName[e.nome].ids.add(e.id);
+      const man=parseFloat(e.oneRM);
+      if(!isNaN(man)&&(byName[e.nome].oneRM===null||man>byName[e.nome].oneRM))byName[e.nome].oneRM=man;
+    }));
+    const out={};
+    Object.values(byName).forEach(ex=>{
+      const pts=WL.map((w,wi)=>{
+        let best=null;
+        Object.values(logs).forEach(b=>(b[wi]||[]).forEach(l=>{
+          if(!ex.ids.has(l.esId))return;
+          const rm=e1RM(parseFloat(l.kg),parseFloat(l.rip));
+          if(rm!==null&&(best===null||rm>best))best=rm;
+        }));
+        return {w,rm:best===null?null:Math.round(best*10)/10};
+      });
+      if(pts.some(p=>p.rm!==null))out[ex.nome]={...ex,pts};
+    });
+    return out;
+  },[schede,logs,maxW]);
+
+  const nomi=Object.keys(esercizi).sort((a,b)=>{
+    const ga=GRUPPI.indexOf(esercizi[a].gruppo),gb=GRUPPI.indexOf(esercizi[b].gruppo);
+    return ga!==gb?ga-gb:a.localeCompare(b);
+  });
+  const cur=esercizi[sel&&esercizi[sel]?sel:nomi[0]];
+
+  if(!nomi.length){
+    return <p style={{fontSize:12,color:"#aaa",padding:"2rem 0"}}>Nessun dato. Inserisci kg e ripetizioni effettivi nel <strong>Diario</strong>: da lì viene stimato il massimale (1RM) settimana per settimana.</p>;
+  }
+
+  const col=GCOL[cur.gruppo]||"#1e3a5f";
+  const validi=cur.pts.filter(p=>p.rm!==null);
+  const primo=validi[0],ultimo=validi[validi.length-1];
+  const best=Math.max(...validi.map(p=>p.rm));
+  const diff=validi.length>1?Math.round((ultimo.rm-primo.rm)*10)/10:null;
+  const diffPct=validi.length>1&&primo.rm?Math.round((ultimo.rm-primo.rm)/primo.rm*100):null;
+
+  const statBox=(label,value,vcol)=>(
+    <div style={{border:"0.5px solid var(--color-border-tertiary)",borderRadius:8,padding:"8px 14px",minWidth:110}}>
+      <div style={{fontSize:10,color:"var(--color-text-secondary)",fontWeight:600,marginBottom:2}}>{label}</div>
+      <div style={{fontSize:16,fontWeight:700,color:vcol||"var(--color-text-primary)"}}>{value}</div>
+    </div>
+  );
+
+  return(
+    <div>
+      <p style={{fontSize:10,fontWeight:700,letterSpacing:1,color:"var(--color-text-secondary)",margin:"0 0 8px"}}>STORICO 1RM STIMATO <span style={{fontWeight:400,letterSpacing:0}}>(dal miglior set effettivo di ogni settimana nel Diario)</span></p>
+      <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:"1rem"}}>
+        {nomi.map(n=>{
+          const g=GCOL[esercizi[n].gruppo]||"#555";
+          const a=n===cur.nome;
+          return <button key={n} onClick={()=>setSel(n)} style={{padding:"4px 12px",fontSize:11,fontWeight:a?700:400,border:`1px solid ${g}`,borderRadius:6,background:a?g:"transparent",color:a?"#fff":g,cursor:"pointer"}}>{n}</button>;
+        })}
+      </div>
+
+      <div style={{display:"flex",gap:10,flexWrap:"wrap",marginBottom:"1rem"}}>
+        {statBox("Migliore",`${best} kg`,col)}
+        {ultimo&&statBox(`Ultimo (${ultimo.w})`,`${ultimo.rm} kg`)}
+        {diff!==null&&statBox(`${primo.w} → ${ultimo.w}`,`${diff>=0?"+":""}${diff} kg (${diffPct>=0?"+":""}${diffPct}%)`,diff>=0?"var(--color-text-success)":"var(--color-text-danger)")}
+        {cur.oneRM!==null&&statBox("1RM impostato",`${cur.oneRM} kg`,"var(--color-text-info)")}
+      </div>
+
+      <div style={{border:`1px solid ${col}44`,borderRadius:8,padding:"1rem",background:`${col}07`,marginBottom:"1.5rem"}}>
+        <p style={{fontSize:12,fontWeight:700,color:col,margin:"0 0 10px"}}>{cur.nome} — {cur.gruppo}</p>
+        <div style={{width:"100%",height:280}}>
+          <ResponsiveContainer>
+            <LineChart data={cur.pts} margin={{top:12,right:24,left:-4,bottom:4}}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)"/>
+              <XAxis dataKey="w" tick={{fontSize:11}}/>
+              <YAxis tick={{fontSize:10}} domain={["auto","auto"]} unit=" kg"/>
+              <Tooltip contentStyle={{fontSize:11,borderRadius:8}} formatter={v=>[`${v} kg`,"1RM stimato"]}/>
+              {cur.oneRM!==null&&<ReferenceLine y={cur.oneRM} stroke="var(--color-text-info)" strokeDasharray="4 4" label={{value:`1RM impostato ${cur.oneRM}kg`,fontSize:9,fill:"var(--color-text-info)",position:"insideTopRight"}}/>}
+              <Line type="monotone" dataKey="rm" stroke={col} strokeWidth={2.5} connectNulls dot={{r:4,fill:col}} activeDot={{r:6}}/>
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+        <div style={{overflowX:"auto",marginTop:"1rem"}}>
+          <table style={{width:"100%",borderCollapse:"collapse",fontSize:11}}>
+            <thead><tr><th style={{...S.th,textAlign:"left"}}>Sett.</th><th style={S.th}>1RM stimato</th><th style={S.th}>Δ vs prec.</th></tr></thead>
+            <tbody>
+              {cur.pts.map((p,wi)=>{
+                const prev=cur.pts.slice(0,wi).reverse().find(x=>x.rm!==null);
+                const d=p.rm!==null&&prev?Math.round((p.rm-prev.rm)*10)/10:null;
+                return (
+                  <tr key={wi} style={{background:wi%2===0?"transparent":"var(--color-background-secondary)"}}>
+                    <td style={{...S.th,textAlign:"left",fontWeight:600}}>{p.w}</td>
+                    <td style={{...S.th,fontWeight:700,color:p.rm!==null?col:"#aaa"}}>{p.rm!==null?`${p.rm} kg`:"—"}</td>
+                    <td style={{...S.th,color:d===null?"#aaa":d>=0?"#27ae60":"#c0392b",fontWeight:600}}>{d===null?"—":d>=0?`+${d}`:`${d}`}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ---- ANTEPRIMA STAMPA ----
 function AnteprimaStampa({tipo,scheda,schede,settimana,WL,get1RM,getLog,onClose}){
   const taRef=useRef();
@@ -782,7 +897,7 @@ export default function App(){
       <div style={{marginBottom:"1rem",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8}}>
         <div>
           <p style={{fontSize:17,fontWeight:700,margin:"0 0 2px"}}>Allenamento</p>
-          <p style={{fontSize:12,color:"var(--color-text-secondary)",margin:0}}>Schede · Diario · Volume</p>
+          <p style={{fontSize:12,color:"var(--color-text-secondary)",margin:0}}>Schede · Diario · Volume · Progressi</p>
         </div>
         <div style={{
           fontSize:11,
@@ -797,7 +912,7 @@ export default function App(){
       </div>
 
       <div style={{display:"flex",gap:8,marginBottom:"1.25rem",flexWrap:"wrap",alignItems:"center"}}>
-        {["schede","diario","volume"].map(t=><button key={t} onClick={()=>setTab(t)} style={S.tab(tab===t)}>{t.charAt(0).toUpperCase()+t.slice(1)}</button>)}
+        {["schede","diario","volume","progressi"].map(t=><button key={t} onClick={()=>setTab(t)} style={S.tab(tab===t)}>{t.charAt(0).toUpperCase()+t.slice(1)}</button>)}
         <div style={{marginLeft:"auto",display:"flex",gap:8,flexWrap:"wrap"}}>
           <button onClick={()=>{setShowSchSalvate(o=>!o);setShowProg(false);setShowDB(false);}} style={S.tab(showSchSalvate)}>📁 Schede{schedeSalvate.length>0&&<span style={{fontSize:10,background:"rgba(39,174,96,0.2)",borderRadius:10,padding:"0 5px",marginLeft:3}}>{schedeSalvate.length}</span>}</button>
           <button onClick={()=>{setShowProg(o=>!o);setShowDB(false);setShowSchSalvate(false);}} style={S.tab(showProg)}>📋 Progressioni{cartella.length>0&&<span style={{fontSize:10,background:"rgba(41,128,185,0.2)",borderRadius:10,padding:"0 5px",marginLeft:3}}>{cartella.length}</span>}</button>
@@ -955,6 +1070,8 @@ export default function App(){
       )}
 
       {tab==="volume"&&<VolumeTab schede={schede} nW={maxW} get1RM={get1RM}/>}
+
+      {tab==="progressi"&&<ProgressiTab schede={schede} logs={logs} maxW={maxW}/>}
     </div>
   );
 }

@@ -7,6 +7,7 @@ App per creare e gestire schede di allenamento con programmazione settimanale, d
 - **Schede**: crea più schede (A, B, C…), ogni esercizio con serie per settimana (4–12 settimane). Carico fisso, rep range o EMOM; carico in kg o in % del 1RM (calcolato anche in automatico dai log con formula di Epley). Supersets, note, duplica/riordina esercizi.
 - **Diario**: per ogni settimana inserisci kg, ripetizioni e RPE effettivi, con confronto (Δ) rispetto al pianificato.
 - **Volume**: grafici volume/intensità/densità per settimana, globali e per gruppo muscolare.
+- **Progressi**: storico del 1RM stimato settimana per settimana per ogni esercizio, calcolato dai set effettivi registrati nel diario (con confronto rispetto al 1RM impostato).
 - **Progressioni**: salva schemi di progressione riutilizzabili e applicali a qualsiasi esercizio.
 - **Stampa**: anteprima scheda o diario con stampa diretta / salvataggio PDF dal browser.
 - **Salvataggio**: automatico in localStorage, più esporta/importa backup JSON (pannello 📁 Schede).
