@@ -761,14 +761,24 @@ export default function App(){
   const [showSalvaModale,setShowSalvaModale]=useState(false);
   const [anteprima,setAnteprima]=useState(null);
   const [savedIndicator,setSavedIndicator]=useState(false);
+  const [theme,setTheme]=useState(()=>{
+    const saved = loadFromStorage();
+    return (saved && saved.theme) ? saved.theme : "auto";
+  });
+
+  // applica il tema scelto: "auto" segue il sistema, altrimenti forza chiaro/scuro
+  useEffect(()=>{
+    if(theme==="auto") delete document.documentElement.dataset.theme;
+    else document.documentElement.dataset.theme=theme;
+  },[theme]);
 
   // ---- AUTO-SAVE: salva su localStorage ad ogni cambiamento ----
   useEffect(() => {
-    saveToStorage({ schede, activeId, logs, esDB, cartella, schedeSalvate });
+    saveToStorage({ schede, activeId, logs, esDB, cartella, schedeSalvate, theme });
     setSavedIndicator(true);
     const t = setTimeout(() => setSavedIndicator(false), 1500);
     return () => clearTimeout(t);
-  }, [schede, activeId, logs, esDB, cartella, schedeSalvate]);
+  }, [schede, activeId, logs, esDB, cartella, schedeSalvate, theme]);
 
   const scheda=schede.find(s=>s.id===activeId)||schede[0];
   const nW=scheda?.nW||8;
@@ -899,16 +909,26 @@ export default function App(){
           <p style={{fontSize:17,fontWeight:700,margin:"0 0 2px"}}>Allenamento</p>
           <p style={{fontSize:12,color:"var(--color-text-secondary)",margin:0}}>Schede · Diario · Volume · Progressi</p>
         </div>
-        <div style={{
-          fontSize:11,
-          padding:"3px 10px",
-          borderRadius:20,
-          background: savedIndicator ? "rgba(39,174,96,0.15)" : "transparent",
-          color: savedIndicator ? "#27ae60" : "transparent",
-          border: savedIndicator ? "0.5px solid rgba(39,174,96,0.4)" : "0.5px solid transparent",
-          transition:"all 0.3s ease",
-          fontWeight:600
-        }}>✓ Salvato</div>
+        <div style={{display:"flex",gap:10,alignItems:"center",flexWrap:"wrap"}}>
+          <div style={{
+            fontSize:11,
+            padding:"3px 10px",
+            borderRadius:20,
+            background: savedIndicator ? "rgba(39,174,96,0.15)" : "transparent",
+            color: savedIndicator ? "#27ae60" : "transparent",
+            border: savedIndicator ? "0.5px solid rgba(39,174,96,0.4)" : "0.5px solid transparent",
+            transition:"all 0.3s ease",
+            fontWeight:600
+          }}>✓ Salvato</div>
+          <div style={{display:"flex",gap:0,border:"0.5px solid var(--color-border-tertiary)",borderRadius:6,overflow:"hidden"}}>
+            {[{v:"light",l:"☀️ Chiaro"},{v:"auto",l:"Auto"},{v:"dark",l:"🌙 Scuro"}].map(o=>(
+              <button key={o.v} onClick={()=>setTheme(o.v)} title={o.v==="auto"?"Segue il tema di sistema":undefined}
+                style={{padding:"4px 10px",fontSize:11,border:"none",cursor:"pointer",fontWeight:theme===o.v?700:400,
+                  background:theme===o.v?"var(--color-background-tertiary)":"transparent",
+                  color:theme===o.v?"var(--color-text-primary)":"var(--color-text-secondary)"}}>{o.l}</button>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div style={{display:"flex",gap:8,marginBottom:"1.25rem",flexWrap:"wrap",alignItems:"center"}}>
