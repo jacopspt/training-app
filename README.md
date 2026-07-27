@@ -12,12 +12,14 @@ Un unico file autonomo: **si apre con doppio click nel browser** (Chrome, Edge, 
 - **Volume** — grafici volume/intensità/densità per settimana e gruppo muscolare
 - **🍎 Alimentazione** — fabbisogno energetico (BMR/TDEE), macro target e piano settimanale generato con AI (dentro claude.ai) o via prompt da copiare
 - **🗂 Clienti / 👤 Atleta** — anagrafica, quadro clinico, plicometria, circonferenze, test massimali, somatotipo, check fotografici, stampa del diario brandizzato
-- **Salvataggio automatico** in localStorage con backup di sicurezza, più **Export/Import** del backup completo su file
+- **📈 Storico 1RM** (in Volume → Forza) — andamento del massimale stimato settimana per settimana, calcolato dal miglior set effettivo registrato nel Diario (formula Brzycki), con statistiche e confronto col 1RM impostato
+- **🌙 Tema scuro** — selettore Chiaro/Scuro nell'header, con preferenza ricordata
+- **Salvataggio automatico** in localStorage con backup di sicurezza, più **Export/Import** del backup completo su file e **promemoria** se l'ultimo export risale a più di 14 giorni
 
 I dati vivono nel browser in cui si usa l'app: fare Export del backup periodicamente.
 
 ## Struttura del repository
 
 - `JacopsPT.html` — l'app completa pronta all'uso (bundle autonomo)
-- `app-src/app.dc.js` — il sorgente dell'app estratto dal bundle, per revisione e modifiche future
+- `app-src/template.html` — il sorgente dell'app (markup dichiarativo + logica) estratto dal bundle; le modifiche si applicano qui e si reiniettano nel bundle codificando il template in JSON con `</` scritto come `</`
 - `legacy/` — la prima bozza (progetto Vite/React), superata ma conservata per riferimento
