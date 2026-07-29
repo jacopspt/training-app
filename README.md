@@ -19,6 +19,23 @@ Un unico file autonomo: **si apre con doppio click nel browser** (Chrome, Edge, 
 
 I dati vivono nel browser in cui si usa l'app: fare Export del backup periodicamente.
 
+## Identità visiva
+
+Allineata al design system del sito JacopsPT:
+
+| Ruolo | Valore |
+|---|---|
+| Navy (struttura, testate, pannelli scuri) | `#183048` — variante profonda `#0f2436` |
+| Teal (azione primaria, etichette di sezione) | `#187878` |
+| Oro (accento, CTA in evidenza) | `#d8a830` |
+| Sfondo pagina / superfici | `#f5f7f7` / `#ffffff` |
+| Bordi | `#dde3e3`, `#e5eaea` |
+| Bottoni | pillola (`border-radius:999px`) |
+| Card e pannelli | raggio 16–18px |
+
+I colori dei gruppi muscolari e i verdi/rossi dei delta restano semantici e fuori dalla palette di brand.
+I font (Barlow Condensed, Inter) sono incorporati come woff2: la scheda del cliente si vede identica anche senza connessione.
+
 ## Giro coach ↔ cliente
 
 Funziona senza server e senza account: la scheda è un file, i carichi tornano come messaggio.
