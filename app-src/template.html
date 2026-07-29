@@ -2201,6 +2201,12 @@ function pctChg(c,p){if(!p||p===0)return null;return Math.round((c-p)/p*100);}
 function resizeEs(e,n){const cur=e.settimane.length;if(n>cur)return Object.assign({},e,{settimane:e.settimane.concat(Array.from({length:n-cur},makeSett))});return Object.assign({},e,{settimane:e.settimane.slice(0,n)});}
 function resizeCardio(e,n){const cur=e.settimane.length;if(n>cur)return Object.assign({},e,{settimane:e.settimane.concat(Array.from({length:n-cur},makeCardioSett))});return Object.assign({},e,{settimane:e.settimane.slice(0,n)});}
 function jptLogoURL(){try{const im=document.querySelector('img[alt="JacopsPT"]');if(im&&im.naturalWidth){const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;c.getContext('2d').drawImage(im,0,0);return c.toDataURL('image/png');}}catch(e){}try{const im2=document.querySelector('img[alt="JacopsPT"]');if(im2&&im2.src)return im2.src;}catch(e){}try{return new URL('assets/jacopspt-icon.png',location.href).href;}catch(e){return 'assets/jacopspt-icon.png';}}
+function isCampoData(k){return /nascita|scadenza|^data|\.data|dataInizio/i.test(String(k||''));}
+function fmtDataDigits(v){const d=String(v==null?'':v).replace(/\D/g,'').slice(0,8);if(d.length<=2)return d;if(d.length<=4)return d.slice(0,2)+'/'+d.slice(2);return d.slice(0,2)+'/'+d.slice(2,4)+'/'+d.slice(4);}
+function completaData(v){const d=String(v==null?'':v).replace(/\D/g,'');
+  if(d.length===8)return d.slice(0,2)+'/'+d.slice(2,4)+'/'+d.slice(4);
+  if(d.length===6){const aa=+d.slice(4,6);const soglia=new Date().getFullYear()%100;const anno=aa<=soglia?2000+aa:1900+aa;return d.slice(0,2)+'/'+d.slice(2,4)+'/'+anno;}
+  return fmtDataDigits(d);}
 function get1RMfromLogs(logs,esId){let best=null;Object.values(logs||{}).forEach(b=>Object.values(b).forEach(arr=>{(arr||[]).filter(l=>l.esId===esId).forEach(l=>{const kg=num(l.kg),rip=num(l.rip);if(!isNaN(kg)&&!isNaN(rip)&&rip>0&&rip<=36){const rm=kg*(36/(37-rip));if(best===null||rm>best)best=rm;}});}));return best;}
 
 function idbO(){return new Promise((res,rej)=>{const r=indexedDB.open('jpt_media',1);r.onupgradeneeded=()=>{r.result.createObjectStore('media');};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
@@ -2259,7 +2265,10 @@ class Component extends DCLogic {
     // la casella esercizio: se contiene gia' un nome, il browser filtra i suggerimenti e si vede solo una parte
     // del gruppo. Alla messa a fuoco la svuotiamo (mostrando tutta la lista) e la ripristiniamo se non si sceglie nulla.
     document.addEventListener('focusin',ev=>{const el=ev.target;if(!el||el.tagName!=='INPUT')return;const l=el.getAttribute('list')||'';if(l.indexOf('exlist-')!==0)return;el.dataset.jptOld=el.value;el.value='';});
-    document.addEventListener('focusout',ev=>{const el=ev.target;if(!el||el.tagName!=='INPUT'||!el.dataset||el.dataset.jptOld===undefined)return;if(!el.value)el.value=el.dataset.jptOld;delete el.dataset.jptOld;});
+    document.addEventListener('focusout',ev=>{const el=ev.target;if(!el||el.tagName!=='INPUT')return;
+      if(el.dataset&&el.dataset.jptOld!==undefined){if(!el.value)el.value=el.dataset.jptOld;delete el.dataset.jptOld;}
+      const k=el.dataset&&el.dataset.k;
+      if(k&&isCampoData(k)&&el.value){const c=completaData(el.value);if(c!==el.value){el.value=c;el.dispatchEvent(new Event('input',{bubbles:true}));}}});
     try{if(localStorage.getItem('jpt_theme')==='dark'){document.documentElement.classList.add('jpt-dark');this.setState({theme:'dark'});}}catch(e){}
     try{const last=+localStorage.getItem('jpt_last_export')||0;const days=last?Math.floor((Date.now()-last)/86400000):null;
       setTimeout(()=>{try{const raw=localStorage.getItem('jpt_dc_v1');const p=raw?JSON.parse(raw):null;if(p&&!looksBlank(p)&&(days===null||days>14))this._toast(days===null?'💾 Consiglio: usa ⬇ Export per creare un backup dei dati':'💾 Ultimo backup '+days+' giorni fa — consigliato ⬇ Export');}catch(e){}},2500);}catch(e){}
@@ -2752,7 +2761,9 @@ body{font-family:'Inter',Arial,sans-serif;color:#1c2127;-webkit-print-color-adju
   onDupCli=(e)=>{const id=e.currentTarget.dataset.id;this.setState(st=>{const c=st.clienti.find(x=>x.id===id);if(!c)return{};const cl=clone(c);cl.id=uid();cl.anag=Object.assign({},cl.anag,{nome:((cl.anag.nome||'')+' (copia)').trim()});cl.storico=[];return {clienti:st.clienti.concat([cl])};});this._toast('Atleta duplicato');};
   onDupSalvata=(e)=>{const id=e.currentTarget.dataset.id;this.setState(st=>{const sv=st.schedeSalvate.find(x=>x.id===id);if(!sv)return{};const cl=clone(sv);cl.id=uid();cl.nome=sv.nome+' (copia)';cl.data=new Date().toLocaleDateString('it-IT');cl.schede.forEach(s=>{s.id=uid();});return {schedeSalvate:st.schedeSalvate.concat([cl])};});this._toast('Programma duplicato');};
   mutCli(path,val){this.setState(st=>{const i=st.clienti.findIndex(c=>c.id===st.clienteId);if(i<0)return{};const arr=st.clienti.slice();const c=clone(arr[i]);setPath(c,path,val);arr[i]=c;return {clienti:arr};});}
-  onCli=(e)=>this.mutCli(e.currentTarget.dataset.k,e.target.value);
+  onCli=(e)=>{const k=e.currentTarget.dataset.k;let v=e.target.value;
+    if(isCampoData(k)){const cifre=String(v).replace(/\D/g,'');v=fmtDataDigits(cifre);e.target.value=v;}
+    this.mutCli(k,v);};
   onCliSet=(e)=>{const d=e.currentTarget.dataset;this.mutCli(d.k,d.v);};
   onCliSel=(e)=>this.mutCli(e.currentTarget.dataset.k,e.target.value);
   onNutriToggle=(e)=>{const k=e.currentTarget.dataset.k;const cur=getPath(this.activeCli(),k);this.mutCli(k,!cur);};
@@ -3276,7 +3287,7 @@ table{width:100%;border-collapse:collapse;font-size:9px}th{background:#183048;co
     out.cliProgsEmpty=cliProgsList.length===0;
     out.cliProgsCount=cliProgsList.length?cliProgsList.length+(cliProgsList.length===1?' programma':' programmi'):'';
     out.onUnassignSalvata=this.onUnassignSalvata;
-    const F=(lab,k,val)=>({lab,k,v:val==null?'':val});
+    const F=(lab,k,val)=>({lab:(isCampoData(k)&&!/gg\/mm/i.test(lab))?(lab+' (gg/mm/aaaa)'):lab,k,v:val==null?'':val});
     out.fCover=[F('Atleta','cover.atleta',cli.cover.atleta),F('Data inizio','cover.dataInizio',cli.cover.dataInizio),F('Programma / Obiettivo','cover.programma',cli.cover.programma),F('Coach','cover.coach',cli.cover.coach),F('Scadenza programma (gg/mm/aaaa)','cover.scadenza',cli.cover.scadenza)];
     out.fAnag=[F('Cognome','anag.cognome',cli.anag.cognome),F('Nome','anag.nome',cli.anag.nome),F('Data di nascita','anag.dataNascita',cli.anag.dataNascita),F('Email','anag.email',cli.anag.email),F('Professione','anag.professione',cli.anag.professione),F('Attività sportiva','anag.attivitaSportiva',cli.anag.attivitaSportiva),F('Anzianità allenamento','anag.anzianita',cli.anag.anzianita)];
     out.fAntro=[F('Altezza (cm)','antro.altezza',cli.antro.altezza),F('Peso attuale (kg)','antro.pesoAttuale',cli.antro.pesoAttuale),F('Peso massimo (kg)','antro.pesoMax',cli.antro.pesoMax),F('Peso minimo (kg)','antro.pesoMin',cli.antro.pesoMin),F('Peso a 20 anni (kg)','antro.peso20',cli.antro.peso20),F('Peso inizio sport (kg)','antro.pesoInizioSport',cli.antro.pesoInizioSport)];
