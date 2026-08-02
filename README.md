@@ -14,6 +14,7 @@ Un unico file autonomo: **si apre con doppio click nel browser** (Chrome, Edge, 
 - **🗂 Clienti / 👤 Atleta** — anagrafica, quadro clinico, plicometria, circonferenze, test massimali, somatotipo, check fotografici, stampa del diario brandizzato
 - **📈 Storico 1RM** (in Volume → Forza) — andamento del massimale stimato settimana per settimana, calcolato dal miglior set effettivo registrato nel Diario (formula Brzycki), con statistiche e confronto col 1RM impostato
 - **🌙 Tema scuro** — selettore Chiaro/Scuro nell'header, con preferenza ricordata
+- **🧠 Test** — questionari di valutazione dello stress (generale e da allenamento) con sintesi incrociata, collegati all'atleta
 - **📤 Scheda al cliente** — vedi sotto: il cliente riceve la scheda sul telefono, segna i carichi e li rimanda con un tap
 - **Salvataggio automatico** in localStorage con backup di sicurezza, più **Export/Import** del backup completo su file e **promemoria** se l'ultimo export risale a più di 14 giorni
 
