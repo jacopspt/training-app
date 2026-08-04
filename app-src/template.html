@@ -1146,7 +1146,7 @@ Distensioni Smith" style="flex:1;min-width:200px;min-height:62px;resize:vertical
             <sc-raw-select value="{{ ex.gruppo }}" sc-camel-on-change="{{ onExField }}" data-e="{{ ex.id }}" data-f="gruppo" style="align-self:flex-start;background:rgba(255,255,255,.7);border:1px solid {{ ex.colBar }};color:{{ ex.col }};font-weight:800;font-size:10.5px;border-radius:5px;padding:2px 6px;cursor:pointer">
               <option>Petto</option><option>Schiena</option><option>Spalle</option><option>Bicipiti</option><option>Tricipiti</option><option>Gambe</option><option>Glutei</option><option>Addome</option><option>Polpacci</option>
             </sc-raw-select>
-            <input autocomplete="off" value="{{ ex.nome }}" sc-camel-on-input="{{ onExField }}" data-e="{{ ex.id }}" data-f="nome" list="exlist-{{ ex.id }}" placeholder="Scrivi o scegli esercizio…" style="background:#fff;border:1px solid #dde3e3;border-radius:6px;padding:5px 7px;font-size:13.5px;font-weight:700;color:#1c2127;min-width:172px">
+            <input value="{{ ex.nome }}" sc-camel-on-input="{{ onExField }}" data-e="{{ ex.id }}" data-f="nome" list="exlist-{{ ex.id }}" placeholder="Scrivi o scegli esercizio…" style="background:#fff;border:1px solid #dde3e3;border-radius:6px;padding:5px 7px;font-size:13.5px;font-weight:700;color:#1c2127;min-width:172px">
             <datalist id="exlist-{{ ex.id }}"><sc-for list="{{ ex.nameOptions }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}"></option></sc-for></datalist>
           </div>
           <textarea autocomplete="off" value="{{ ex.note }}" sc-camel-on-input="{{ onExNote }}" data-e="{{ ex.id }}" data-f="note" rows="1" placeholder="Note" style="background:#fff;border:1px solid #dde3e3;border-radius:6px;padding:5px 7px;font-size:11px;width:140px;min-height:29px;resize:vertical;font-family:inherit;line-height:1.35;overflow:hidden"></textarea>
@@ -1733,7 +1733,7 @@ Distensioni Smith" style="flex:1;min-width:200px;min-height:62px;resize:vertical
       <sc-for list="{{ nIntegr }}" as="it" hint-placeholder-count="0">
         <div style="{{ it.cardStyle }}">
           <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
-            <input autocomplete="off" value="{{ it.nome }}" sc-camel-on-input="{{ onNutriIntField }}" data-i="{{ it.i }}" data-f="nome" list="integr-comuni" placeholder="Integratore…" style="flex:1;min-width:120px;background:#fff;border:1px solid #dde3e3;border-radius:8px;padding:8px 10px;font-size:13.5px;font-weight:700;color:#1c2127">
+            <input value="{{ it.nome }}" sc-camel-on-input="{{ onNutriIntField }}" data-i="{{ it.i }}" data-f="nome" list="integr-comuni" placeholder="Integratore…" style="flex:1;min-width:120px;background:#fff;border:1px solid #dde3e3;border-radius:8px;padding:8px 10px;font-size:13.5px;font-weight:700;color:#1c2127">
             <button sc-camel-on-click="{{ onNutriMoveInt }}" data-i="{{ it.i }}" data-dir="-1" title="Su" style="background:#fff;border:1px solid #dde3e3;color:#6a7280;border-radius:7px;width:30px;height:30px;font-size:13px;cursor:pointer">↑</button>
             <button sc-camel-on-click="{{ onNutriMoveInt }}" data-i="{{ it.i }}" data-dir="1" title="Giù" style="background:#fff;border:1px solid #dde3e3;color:#6a7280;border-radius:7px;width:30px;height:30px;font-size:13px;cursor:pointer">↓</button>
             <button sc-camel-on-click="{{ onNutriDelInt }}" data-i="{{ it.i }}" title="Rimuovi" style="background:#fff;border:1px solid #f0d3cf;color:#c0392b;border-radius:7px;width:30px;height:30px;font-size:14px;font-weight:800;cursor:pointer">✕</button>
@@ -2386,9 +2386,7 @@ class Component extends DCLogic {
   componentDidMount(){this._dp=null;window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();this._dp=e;});
     let ok=false;try{localStorage.setItem('jpt_test','1');ok=localStorage.getItem('jpt_test')==='1';localStorage.removeItem('jpt_test');}catch(e){ok=false;}
     if(!ok)this.setState({storageOK:false});
-    document.addEventListener('focusin',ev=>{const el=ev.target;if(!el||el.tagName!=='INPUT')return;const l=el.getAttribute('list')||'';if(l.indexOf('exlist-')!==0)return;el.dataset.jptOld=el.value;el.value='';});
     document.addEventListener('focusout',ev=>{const el=ev.target;if(!el||el.tagName!=='INPUT')return;
-      if(el.dataset&&el.dataset.jptOld!==undefined){if(!el.value)el.value=el.dataset.jptOld;delete el.dataset.jptOld;}
       const k=el.dataset&&el.dataset.k;
       if(k&&isCampoData(k)&&el.value){const c=completaData(el.value);if(c!==el.value){el.value=c;el.dispatchEvent(new Event('input',{bubbles:true}));}}});
     try{if(localStorage.getItem('jpt_theme')==='dark'){document.documentElement.classList.add('jpt-dark');this.setState({theme:'dark'});}}catch(e){}
