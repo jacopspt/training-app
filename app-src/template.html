@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html><head>
+<html lang="it" translate="no" class="notranslate"><head><meta name="google" content="notranslate">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JacopsPT — Over 40 Fitness</title>
 <script src="40e5a488-8603-4da0-9e99-55855256a6a1"></script>
 </head>
 <body>
@@ -2786,7 +2787,7 @@ class Component extends DCLogic {
     +"if(a==='send'){openSend();return;}"
     +"if(a.slice(0,2)==='v:'){view=a.slice(2);render();return;}"
     +"if(a.slice(0,2)==='w:'){week=+a.slice(2);render();}});render();";
-    return '<!DOCTYPE html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Scheda \u2014 '+E(D.cliente)+'</title>'
+    return '<!DOCTYPE html><html lang="it" translate="no" class="notranslate"><head><meta name="google" content="notranslate"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Scheda \u2014 '+E(D.cliente)+'</title>'
     +(fontCSS?('<style>'+fontCSS+'</style>'):'<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Inter:wght@400;700;800&display=swap" rel="stylesheet">')
     +'<style>'+css+'</style></head><body>'
     +'<div class="hd"><div><b>JACOPSPT</b><div class="g">OVER 40 FITNESS</div></div><div style="text-align:right"><div style="font-weight:800">'+E(D.cliente)+'</div><div style="font-size:12px;color:#bcc9da">'+E(D.programma)+(D.programma?' \u00b7 ':'')+'Coach '+E(D.coach)+' \u00b7 '+E(D.data)+'</div></div></div>'
@@ -2808,7 +2809,7 @@ class Component extends DCLogic {
     let b='';
     if(tipo==='scheda'){b=hdr+"<h2>"+sc.nome+" — "+nW+" settimane</h2>";sc.esercizi.forEach(e=>{const rm=get1RM(e);b+="<h3>"+(e.nome||'—')+" — "+e.gruppo+(rm?" (1RM "+Math.round(rm)+"kg)":'')+"</h3><table><thead><tr>";WL.forEach((w,wi)=>b+="<th>"+w+" ("+((e.settimane[wi]&&e.settimane[wi].serie.length)||0)+"s)</th>");b+="</tr></thead><tbody><tr>";e.settimane.forEach(st2=>{b+="<td>";st2.serie.forEach((s,si)=>{b+="<div class='sl'><b>S"+(si+1)+"</b> "+(caricoStr(s)||'—')+" "+(ripStr(s)?'x'+ripStr(s):'')+" <span style='color:#888'>"+(s.rec||'')+(s.rpe?' @'+s.rpe:'')+(s.tut?' TUT '+s.tut:'')+"</span><div class='bx'></div></div>";});b+="</td>";});b+="</tr></tbody></table>";if(e.commento)b+="<div style='font-size:7pt;color:#666'>"+e.commento+"</div>";const vid=e.video||(st.videoDB||{})[e.nome]||'';if(vid)b+="<div style='display:flex;align-items:center;gap:6px;margin:2px 0 4px'><img src='https://api.qrserver.com/v1/create-qr-code/?size=54x54&amp;data="+encodeURIComponent(vid)+"' width='54' height='54' style='border:1px solid #ddd'><span style='font-size:7pt;color:#1f6aa0;word-break:break-all'>&#9654; Video esecuzione (inquadra il QR):<br>"+vid+"</span></div>";});}
     else{b=hdr+"<h2>Diario di Allenamento — "+nW+" settimane</h2>";WL.forEach((wl,wi)=>{b+="<div class='wk'"+(wi>0?" style='page-break-before:always'":"")+"><h2 style='margin-top:0;color:#183048;border-bottom:2px solid #d8a830;padding-bottom:3px'>Settimana "+(wi+1)+"</h2>";const note=st.noteSessione[wi];if(note)b+="<div style='font-size:8pt;color:#444;margin:0 0 6px;font-style:italic'>Note: "+note+"</div>";st.schede.forEach(s=>{b+="<h3>"+s.nome+"</h3>";s.esercizi.forEach(e=>{const rm=get1RM(e);const stt=e.settimane[wi];if(!stt)return;b+="<div style='font-weight:700;font-size:8.5pt;margin:5px 0 2px'>"+(e.nome||'—')+" — "+e.gruppo+(rm?" (1RM "+Math.round(rm)+"kg)":'')+"</div><table><thead><tr><th>S.</th><th>Tipo</th><th>Rec</th><th>RPE</th><th>Pianificato</th><th>kg</th><th>rip</th><th>RPE</th></tr></thead><tbody>";stt.serie.forEach((s2,si)=>{const cTxt=planLoadTxt(s2,rm);const log=this.getLog(s.id,wi,e.id,si);b+="<tr><td><b>S"+(si+1)+"</b></td><td>"+(TIPI_L[s2.tipo]||'')+"</td><td>"+(s2.rec||'')+"</td><td>"+(s2.rpe||'—')+"</td><td>"+cTxt+(ripStr(s2)?' '+ripStr(s2):'')+(s2.tut?' TUT '+s2.tut:'')+"</td><td>"+(log.kg||"<div class='bx'></div>")+"</td><td>"+(log.rip||"<div class='bx'></div>")+"</td><td>"+(log.rpe||"<div class='bx'></div>")+"</td></tr>";});b+="</tbody></table>";});});b+="</div>";});}
-    return "<!DOCTYPE html><html><head><meta charset='utf-8'><title>JacopsPT</title><style>"+css+"</style></head><body>"+b+"<div class='ft'>JacopsPT · Over 40 Fitness</div></body></html>";}
+    return "<!DOCTYPE html><html lang='it' translate='no' class='notranslate'><head><meta name='google' content='notranslate'><meta charset='utf-8'><title>JacopsPT</title><style>"+css+"</style></head><body>"+b+"<div class='ft'>JacopsPT · Over 40 Fitness</div></body></html>";}
   buildDiarioParts(withCover){const st=this.state;const nW=Math.max(...st.schede.map(s=>s.nW));const cli=this.activeCli?this.activeCli():null;const atleta=cli&&cli.anag&&(cli.anag.nome||'')?cli.anag.nome:'';
     const esc=(s)=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     const get1RM=(e)=>e.oneRMauto?get1RMfromLogs(st.logs,e.id):(num(e.oneRM)||null);
@@ -2868,7 +2869,7 @@ body{font-family:'Inter',Arial,sans-serif;color:#1c2127;-webkit-print-color-adju
       pages+=`<div class="page">${b}</div>`;}
     return {css,pages:`<div class="dw">${pages}</div>`};}
   buildDiarioPrint(){const p=this.buildDiarioParts(true);
-    return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Diario — JacopsPT</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"><style>${p.css}</style></head><body>${p.pages}</body></html>`;}
+    return `<!DOCTYPE html><html lang="it" translate="no" class="notranslate"><head><meta name="google" content="notranslate"><meta charset="utf-8"><title>Diario — JacopsPT</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"><style>${p.css}</style></head><body>${p.pages}</body></html>`;}
   openPrint(tipo){const html=tipo==='diario'?this.buildDiarioPrint():this.buildPrint(tipo);const w=window.open('','_blank');if(!w){this._toast('Abilita i popup per stampare');return;}w.document.open();w.document.write(html);w.document.close();setTimeout(()=>{try{w.focus();w.print();}catch(e){}},350);}
   onPrintScheda=()=>this.openPrint('scheda');
   onPrintDiario=()=>this.openPrint('diario');
@@ -3006,7 +3007,7 @@ body{font-family:'Inter',Arial,sans-serif;color:#1c2127;-webkit-print-color-adju
       const dt=d.totali||{};body+="<table style='margin-top:6px'><tr class='tot'><td><b>TOTALE GIORNATA</b></td><td class='n'>"+esc(dt.kcal)+" kcal</td><td class='n'>P "+esc(dt.proteine)+"</td><td class='n'>C "+esc(dt.carboidrati)+"</td><td class='n'>G "+esc(dt.grassi)+"</td></tr></table>";
       body+="<div class='ftr'>JacopsPT · Piano Alimentare · "+esc(atleta)+"</div></div>";});
     if(P.listaSpesa&&P.listaSpesa.length){body+="<div class='pg'><h2>Lista della spesa</h2>";P.listaSpesa.forEach(c=>{body+="<div class='meal' style='margin-bottom:2px'>"+esc(c.categoria)+"</div><div style='font-size:9pt;color:#3a414c;margin-bottom:8px'>"+(c.voci||[]).map(esc).join(' · ')+"</div>";});if(P.note)body+="<div style='margin-top:10px;font-size:9pt;color:#3a414c'><b>Note:</b> "+esc(P.note)+"</div>";body+="</div>";}
-    return "<!DOCTYPE html><html><head><meta charset='utf-8'><title>Piano Alimentare — "+esc(atleta)+"</title><link href='https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;600;700;800&display=swap' rel='stylesheet'><style>"+css+"</style></head><body>"+body+"</body></html>";}
+    return "<!DOCTYPE html><html lang='it' translate='no' class='notranslate'><head><meta name='google' content='notranslate'><meta charset='utf-8'><title>Piano Alimentare — "+esc(atleta)+"</title><link href='https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;600;700;800&display=swap' rel='stylesheet'><style>"+css+"</style></head><body>"+body+"</body></html>";}
   onCliSearch=(e)=>this.setState({cliSearch:e.target.value});
   onSelCli=(e)=>this.setState({clienteId:e.target.value});
   onOpenCliente=(e)=>this.setState({clienteId:e.currentTarget.dataset.id,tab:'atleta'});
@@ -3102,7 +3103,7 @@ body{font-family:'Inter',Arial,sans-serif;color:#1c2127;-webkit-print-color-adju
 table{width:100%;border-collapse:collapse;font-size:9px}th{background:#183048;color:#fff;font-weight:700;padding:5px 7px;text-align:left;font-size:8px;letter-spacing:.02em}td{border:.5px solid #dde1e7;padding:5px 7px;font-size:9.5px}.ctr{text-align:center}tbody tr:nth-child(even){background:#f6f8fa}
 .formula{background:#f4f6f9;border-left:3px solid #d8a830;font-size:9px;font-weight:700;color:#183048;padding:7px 11px;margin-bottom:13px;font-family:'Barlow Condensed';letter-spacing:.02em}
 .guida{font-size:8px;color:#6a7280;margin-top:6px;font-style:italic}`;
-    return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Scheda Cliente — JacopsPT</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"><style>${css}</style></head><body>${cover}${p2}${p3}${p4}${p5}${p6}</body></html>`;
+    return `<!DOCTYPE html><html lang="it" translate="no" class="notranslate"><head><meta name="google" content="notranslate"><meta charset="utf-8"><title>Scheda Cliente — JacopsPT</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"><style>${css}</style></head><body>${cover}${p2}${p3}${p4}${p5}${p6}</body></html>`;
   }
   onPrintCliente=()=>{let html=this.buildClientePrint();
     if(this.state.schede.some(s=>s.esercizi.some(x=>x.nome))){const d=this.buildDiarioParts();html=html.replace('</body>','<style>'+d.css.replace(/@page\{[^}]*\}/,'')+'.dw .page{width:210mm;min-height:297mm;padding:12mm 12mm 14mm}</style>'+d.pages+'</body>');}const w=window.open('','_blank');if(!w){this._toast('Abilita i popup per stampare');return;}w.document.open();w.document.write(html);w.document.close();setTimeout(()=>{try{w.focus();w.print();}catch(e){}},500);};
@@ -3755,4 +3756,37 @@ table{width:100%;border-collapse:collapse;font-size:9px}th{background:#183048;co
 </script>
 
 
+<script>
+(function(){
+  var CH='jpt_avviso_traduzione';
+  function tradotta(){
+    var c=document.documentElement.className||'';
+    return c.indexOf('translated')>=0;
+  }
+  function mostra(){
+    if(document.getElementById('jpt-tradotto'))return;
+    var d=document.createElement('div');
+    d.id='jpt-tradotto';d.className='notranslate';d.setAttribute('translate','no');
+    d.style.cssText='position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;background:#183048;color:#fff;'
+      +'border-radius:14px;padding:13px 16px;font:13.5px/1.45 -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;'
+      +'box-shadow:0 6px 22px rgba(0,0,0,.28);max-width:640px;margin:0 auto;display:flex;gap:10px;align-items:flex-start';
+    d.innerHTML='<span style="font-size:17px;line-height:1.1">🌐</span><div style="flex:1">'
+      +'<b>Il browser sta traducendo questa pagina.</b><br>'
+      +'I nomi dei menu vengono riscritti (per esempio <i>Range</i> diventa <i>Allineare</i> e <i>Max Rep</i> diventa <i>Reputazione massima</i>). '
+      +'Per rivederli giusti: tasto destro sulla pagina → <b>Mostra originale</b>, oppure tocca l\'icona della traduzione nella barra degli indirizzi e scegli <b>Originale</b>.'
+      +'<\/div><button type="button" style="background:transparent;border:0;color:#b9c7d6;font-size:17px;cursor:pointer;padding:0 2px">✕<\/button>';
+    d.lastChild.onclick=function(){d.remove();try{sessionStorage.setItem(CH,'1');}catch(e){}};
+    document.body.appendChild(d);
+  }
+  function controlla(){
+    var chiuso=false;try{chiuso=sessionStorage.getItem(CH)==='1';}catch(e){}
+    if(tradotta()&&!chiuso)mostra();
+    else{var v=document.getElementById('jpt-tradotto');if(v&&!tradotta())v.remove();}
+  }
+  try{
+    new MutationObserver(controlla).observe(document.documentElement,{attributes:true,attributeFilter:['class']});
+  }catch(e){}
+  setTimeout(controlla,1500);setTimeout(controlla,5000);
+})();
+</script>
 </body></html>

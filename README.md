@@ -16,6 +16,7 @@ Un unico file autonomo: **si apre con doppio click nel browser** (Chrome, Edge, 
 - **🌙 Tema scuro** — selettore Chiaro/Scuro nell'header, con preferenza ricordata
 - **🧠 Test** — questionari di valutazione dello stress (generale e da allenamento) con sintesi incrociata, collegati all'atleta
 - **📤 Scheda al cliente** — vedi sotto: il cliente riceve la scheda sul telefono, segna i carichi e li rimanda con un tap
+- **🌐 Niente traduzione automatica** — l'app si dichiara in italiano e vieta al browser di tradurla: senza questo Chrome riscriveva le voci dei menu (*Range* → «Allineare», *Max Rep* → «Reputazione massima»). Se la traduzione viene forzata a mano, l'app se ne accorge e spiega come tornare all'originale
 - **Salvataggio automatico** in localStorage con backup di sicurezza, più **Export/Import** del backup completo su file e **promemoria** se l'ultimo export risale a più di 14 giorni
 
 I dati vivono nel browser in cui si usa l'app: fare Export del backup periodicamente.
