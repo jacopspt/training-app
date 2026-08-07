@@ -43,10 +43,10 @@ I font (Barlow Condensed, Inter) sono incorporati come woff2: la scheda del clie
 
 Funziona senza server e senza account: la scheda è un file, i carichi tornano come messaggio.
 
-1. **Coach — 📤 Cliente**: scarica `scheda-<nome>.html` e lo manda al cliente (WhatsApp come documento, oppure mail con **✉️ Mail**).
+1. **Coach — 📤 Manda al cliente**: scarica `scheda-<nome>.html` e lo manda al cliente (WhatsApp come documento, oppure mail con **✉️ Manda per mail**).
 2. **Cliente**: apre il file col browser del telefono (meglio se lo aggiunge alla schermata Home). Vede scheda e video, e nel **Diario** segna kg, ripetizioni e RPE di ogni serie — il layout diventa a schede su schermo stretto e ogni modifica si salva sul dispositivo.
 3. **Cliente — 📤 Invia i miei carichi al coach**: sceglie **WhatsApp** (messaggio già pronto con un codice `JPT1…`), **Copia il codice** o **Scarica il file**.
-4. **Coach — 📲 Codice WhatsApp**: incolla il codice ricevuto (oppure usa **📥 Risposta** per il file). I valori entrano nel Diario, con scelta se sovrascrivere o riempire solo le celle vuote, e alimentano Volume e Storico 1RM.
+4. **Coach — 📥 Ricevi carichi (WhatsApp)**: incolla il codice ricevuto (oppure **📥 Ricevi carichi (file)** se ti ha mandato il `.json`). I valori entrano nel Diario, con scelta se sovrascrivere o riempire solo le celle vuote, e alimentano Volume e Storico 1RM.
 
 Note: i dati del cliente restano sul suo telefono finché non li invia; se il suo browser blocca il salvataggio locale, la pagina lo avvisa di inviare subito i carichi.
 
