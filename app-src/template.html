@@ -2982,8 +2982,57 @@ class Component extends DCLogic {
     +'<div class="hd"><div><b>JACOPSPT</b><div class="g">OVER 40 FITNESS</div></div><div style="text-align:right"><div style="font-weight:800">'+E(D.cliente)+'</div><div style="font-size:12px;color:#bcc9da">'+E(D.programma)+(D.programma?' \u00b7 ':'')+'Coach '+E(D.coach)+' \u00b7 '+E(D.data)+'</div></div></div>'
     +'<div class="wrap"><div id="app"></div><div class="ft">JacopsPT \u00b7 Over 40 Fitness \u2014 i dati che inserisci restano salvati su questo dispositivo</div></div>'
     +SO+'var DATA='+json+';'+js+SC+'</body></html>';}
-  onExportCliente=async()=>{const cli=this.activeCli();if(!this.state.schede.some(s=>s.esercizi.some(x=>x.nome))){this._toast('La scheda di lavoro è vuota');return;}this._toast('Preparo la scheda…');const html=await this.buildClientHTML();const slug=(cliLabel(cli)||'cliente').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'cliente';const blob=new Blob([html],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='scheda-'+slug+'.html';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),3000);this._toast('📤 Scheda scaricata — inviala al cliente via WhatsApp (come documento) o allegala alla mail');};
-  onMailCliente=()=>{const cli=this.activeCli();const em=(cli.anag.email||'').trim();if(!em){this._toast('Aggiungi l\'email nell\'anagrafica del cliente (tab Atleta)');return;}const sub=encodeURIComponent('La tua scheda di allenamento — JacopsPT');const body=encodeURIComponent('Ciao '+(cli.anag.nome||'')+',\n\nin allegato trovi la tua scheda di allenamento.\nAprila con il browser (Chrome/Safari): puoi consultare il programma, guardare i video degli esercizi, compilare kg e ripetizioni nel Diario e stampare tutto.\nI dati restano salvati sul tuo dispositivo: quando vuoi, tocca "Invia i miei carichi al coach" e scegli WhatsApp: mi arriva il codice con i tuoi carichi.\n\nBuon allenamento!\n'+((cli.cover&&cli.cover.coach)||'JacopsPT'));const gm='https://mail.google.com/mail/?view=cm&fs=1&to='+encodeURIComponent(em)+'&su='+sub+'&body='+body;const w=window.open(gm,'_blank','noopener');if(!w){this._toast('Consenti i popup per aprire Gmail');return;}this._toast('✉️ Gmail aperto — allega il file scaricato');};
+  onExportCliente=async()=>{
+    if(!this.state.schede.some(s=>s.esercizi.some(x=>x.nome))){this._toast('La scheda di lavoro è vuota');return;}
+    this._toast('Preparo la scheda…');
+    const f=await this._fileScheda();
+    if(await this._condividiScheda(f,'Ecco la tua scheda di allenamento. Aprila con il browser: trovi il programma, i video e il diario da compilare.')){this._toast('📤 Scheda condivisa');return;}
+    this._scaricaScheda(f);
+    this._toast('📤 «'+f.nome+'» scaricata — mandala al cliente su WhatsApp come documento (📎 → Documento) o allegala alla mail');
+  };
+  onMailCliente=async()=>{
+    const cli=this.activeCli();const em=(cli.anag.email||'').trim();
+    if(!em){this._toast('Aggiungi l\'email nell\'anagrafica del cliente (tab Atleta)');return;}
+    if(!this.state.schede.some(s=>s.esercizi.some(x=>x.nome))){this._toast('La scheda di lavoro è vuota');return;}
+    const nome=this._nomeFileScheda();
+    if(!confirm('L\'ALLEGATO VA AGGIUNTO A MANO\n\nNessun sito può allegare un file a una mail al posto tuo: io scarico la scheda, tu la agganci con un tocco.\n\n1. Apro la mail già scritta per '+em+'\n2. Tocca la graffetta 📎 e scegli «'+nome+'» (cartella Download)\n3. Invia\n\nProcedo?'))return;
+    const sub=encodeURIComponent('La tua scheda di allenamento — JacopsPT');
+    const body=encodeURIComponent('Ciao '+(cli.anag.nome||'')+',\n\nin allegato trovi la tua scheda di allenamento.\nAprila con il browser (Chrome/Safari): puoi consultare il programma, guardare i video degli esercizi, compilare kg e ripetizioni nel Diario e stampare tutto.\nI dati restano salvati sul tuo dispositivo: quando vuoi, tocca "Invia i miei carichi al coach" e scegli WhatsApp: mi arriva il codice con i tuoi carichi.\n\nBuon allenamento!\n'+((cli.cover&&cli.cover.coach)||'JacopsPT'));
+    const gm='https://mail.google.com/mail/?view=cm&fs=1&to='+encodeURIComponent(em)+'&su='+sub+'&body='+body;
+    const w=window.open(gm,'_blank','noopener');
+    this._toast('Preparo la scheda…');
+    const f=await this._fileScheda();
+    this._scaricaScheda(f);
+    this._toast(w?('✉️ Mail aperta — ora allega «'+f.nome+'» dalla cartella Download')
+                :('⚠️ Gmail bloccato dal browser (consenti i popup) — «'+f.nome+'» è comunque nella cartella Download'));
+  };
+  // ---- scheda del cliente: costruzione, condivisione, scaricamento ----
+  _nomeFileScheda(){
+    const cli=this.activeCli();
+    const slug=(cliLabel(cli)||'cliente').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'cliente';
+    return 'scheda-'+slug+'.html';
+  }
+  async _fileScheda(){
+    const html=await this.buildClientHTML();
+    return {nome:this._nomeFileScheda(),html:html};
+  }
+  _scaricaScheda(f){
+    const blob=new Blob([f.html],{type:'text/html'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=f.nome;a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+  }
+  // sul telefono apre il foglio di condivisione CON il file dentro: WhatsApp,
+  // Mail e gli altri lo ricevono come vero allegato. Su desktop non e'
+  // disponibile e si torna allo scaricamento.
+  async _condividiScheda(f,testo){
+    try{
+      if(typeof File!=='function'||!navigator.canShare||!navigator.share)return false;
+      const file=new File([f.html],f.nome,{type:'text/html'});
+      if(!navigator.canShare({files:[file]}))return false;
+      await navigator.share({files:[file],title:'Scheda di allenamento — JacopsPT',text:testo});
+      return true;
+    }catch(e){return false;}
+  }
   onImportRisposta=(e)=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);this.applyRisposta(d);}catch(err){alert('File risposta non valido.');}e.target.value='';};r.readAsText(f);};
   onPasteRisposta=()=>{const raw=prompt('CODICE CARICHI DEL CLIENTE\n\nLo genera il cliente dalla scheda che gli hai mandato: apre il Diario, segna kg e ripetizioni, poi tocca "Invia i miei carichi al coach" e sceglie WhatsApp.\n\nCopia dal messaggio che ricevi la parte che inizia con JPT1 e incollala qui:');if(raw===null)return;const t=String(raw).replace(/\s+/g,'');const i=t.indexOf('JPT1');if(i<0){alert('Codice non riconosciuto.\n\nDeve contenere una parte che inizia con JPT1: copiala per intero dal messaggio del cliente.');return;}
     try{const d=JSON.parse(decodeURIComponent(escape(atob(t.slice(i+4)))));this.applyRisposta(d);}catch(err){alert('Codice non valido o incompleto.\n\nChiedi al cliente di rimandarlo: va copiato tutto, dall\'inizio alla fine.');}};
