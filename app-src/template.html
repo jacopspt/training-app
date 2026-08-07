@@ -1361,9 +1361,69 @@ Distensioni Smith" style="flex:1;min-width:200px;min-height:62px;resize:vertical
         <button sc-camel-on-click="{{ onVolView }}" data-v="confronto" style="{{ volViewStyle.confronto }}">📊 Confronto programmi</button>
         <button sc-camel-on-click="{{ onVolView }}" data-v="attuale" style="{{ volViewStyle.attuale }}">Programma attuale</button>
         <button sc-camel-on-click="{{ onVolView }}" data-v="rm1" style="{{ volViewStyle.rm1 }}">📈 Storico 1RM</button>
+      <button sc-camel-on-click="{{ onVolView }}" data-v="rilev" style="{{ volViewStyle.rilev }}">🔔 Rilevatore intervalli</button>
       </div>
 
-      <sc-if value="{{ isVol1RM }}" hint-placeholder-val="{{ false }}">
+  
+    <sc-if value="{{ isVolRilev }}" hint-placeholder-val="{{ false }}">
+      <div>
+        <div style="background:linear-gradient(135deg,#183048,#0f2436);border-radius:16px;padding:13px 15px;margin-bottom:14px;color:#fff;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span style="font-family:'Barlow Condensed';font-weight:800;font-size:17px">🔔 Rilevatore intervalli</span>
+          <span style="font-size:12px;color:#b9c7d6;flex:1;min-width:180px">Mesociclo «{{ rilScheda }}» — solo avviso: il programma non viene toccato.</span>
+        </div>
+        <div style="{{ rilCardStyle }}">
+          <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+            <span style="font-size:19px">{{ rilIcona }}</span>
+            <span style="{{ rilTitoloStyle }}">{{ rilTitolo }}</span>
+            <span style="font-size:11px;font-weight:800;letter-spacing:.09em;color:#6a7280;text-transform:uppercase">nota {{ rilNota }}</span>
+          </div>
+          <div style="{{ rilShockStyle }}">{{ rilShock }}</div>
+          <div style="{{ rilSpiegStyle }}">{{ rilSpiegazione }}</div>
+          <div style="font-size:11.5px;color:#6a7280;margin-top:9px">{{ rilRiepilogo }}</div>
+          <sc-if value="{{ rilHasStalli }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:12px;color:#3a414c;margin-top:6px"><b>In stallo:</b> {{ rilStalliTxt }}</div>
+          </sc-if>
+          <sc-if value="{{ rilHasFaticati }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:12px;color:#3a414c;margin-top:4px"><b>Faticati:</b> {{ rilFaticatiTxt }}</div>
+          </sc-if>
+        </div>
+        <sc-if value="{{ rilVuoto }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#fff;border:1px dashed #c3cccc;border-radius:14px;padding:16px;font-size:13px;color:#6a7280;text-align:center">
+            Nessun esercizio ha ancora abbastanza dati. {{ rilSogliaTxt }}
+          </div>
+        </sc-if>
+        <sc-if value="{{ rilPieno }}" hint-placeholder-val="{{ false }}">
+          <div style="background:#fff;border:1px solid #e5eaea;border-radius:16px;padding:12px 13px;overflow-x:auto">
+            <sc-raw-table style="width:100%;border-collapse:collapse;min-width:640px">
+              <sc-raw-thead><sc-raw-tr>
+                <sc-raw-th style="font-size:10px;font-weight:700;color:#6a7280;background:#f4f5f7;border:1px solid #eceef2;padding:5px 6px;text-align:left">Esercizio</sc-raw-th>
+                <sc-raw-th style="font-size:10px;font-weight:700;color:#6a7280;background:#f4f5f7;border:1px solid #eceef2;padding:5px 6px;text-align:center">Carico</sc-raw-th>
+                <sc-raw-th style="font-size:10px;font-weight:700;color:#6a7280;background:#f4f5f7;border:1px solid #eceef2;padding:5px 6px;text-align:center">Δ carico</sc-raw-th>
+                <sc-raw-th style="font-size:10px;font-weight:700;color:#6a7280;background:#f4f5f7;border:1px solid #eceef2;padding:5px 6px;text-align:center">RPE</sc-raw-th>
+                <sc-raw-th style="font-size:10px;font-weight:700;color:#6a7280;background:#f4f5f7;border:1px solid #eceef2;padding:5px 6px;text-align:center">Δ RPE</sc-raw-th>
+                <sc-raw-th style="font-size:10px;font-weight:700;color:#6a7280;background:#f4f5f7;border:1px solid #eceef2;padding:5px 6px;text-align:center">RPE medio</sc-raw-th>
+                <sc-raw-th style="font-size:10px;font-weight:700;color:#6a7280;background:#f4f5f7;border:1px solid #eceef2;padding:5px 6px;text-align:center">Stato</sc-raw-th>
+              </sc-raw-tr></sc-raw-thead>
+              <sc-raw-tbody>
+                <sc-for list="{{ rilRighe }}" as="r" hint-placeholder-count="0">
+                  <sc-raw-tr>
+                    <sc-raw-td style="border:1px solid #eceef2;padding:5px 6px;font-size:12.5px"><div style="font-weight:700">{{ r.nome }}</div><div style="{{ r.gruppoStyle }}">{{ r.gruppo }}</div></sc-raw-td>
+                    <sc-raw-td style="border:1px solid #eceef2;padding:5px 6px;font-size:12.5px;text-align:center">{{ r.caricoTxt }}</sc-raw-td>
+                    <sc-raw-td style="border:1px solid #eceef2;padding:5px 6px;font-size:12.5px;text-align:center"><span style="{{ r.dCaricoStyle }}">{{ r.dCaricoTxt }}</span></sc-raw-td>
+                    <sc-raw-td style="border:1px solid #eceef2;padding:5px 6px;font-size:12.5px;text-align:center">{{ r.rpeTxt }}</sc-raw-td>
+                    <sc-raw-td style="border:1px solid #eceef2;padding:5px 6px;font-size:12.5px;text-align:center"><span style="{{ r.dRpeStyle }}">{{ r.dRpeTxt }}</span></sc-raw-td>
+                    <sc-raw-td style="border:1px solid #eceef2;padding:5px 6px;font-size:12.5px;text-align:center">{{ r.rpeMedioTxt }}</sc-raw-td>
+                    <sc-raw-td style="border:1px solid #eceef2;padding:5px 6px;font-size:12.5px;text-align:center"><span style="{{ r.tagStyle }}">{{ r.tag }}</span></sc-raw-td>
+                  </sc-raw-tr>
+                </sc-for>
+              </sc-raw-tbody>
+            </sc-raw-table>
+            <div style="font-size:11px;color:#9aa0a8;margin-top:9px">Per ogni settimana si usa il set con l'RPE più alto (top set per fatica), con il suo carico. {{ rilSogliaTxt }}</div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+    <sc-if value="{{ isVol1RM }}" hint-placeholder-val="{{ false }}">
       <div>
         <div style="background:linear-gradient(135deg,#183048,#0f2436);border-radius:16px;padding:13px 15px;margin-bottom:14px;color:#fff;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <span style="font-family:'Barlow Condensed';font-weight:800;font-size:17px">📈 Storico 1RM stimato</span>
@@ -2340,6 +2400,125 @@ function shrinkImage(file){return new Promise(res=>{const img=new Image();img.on
 const PROG_TIPI={volume:{label:'Volume',col:'#27ae60'},densita:{label:'Densità',col:'#2980b9'},intensita:{label:'Intensificazione',col:'#c0392b'},mista:{label:'Mista',col:'#8e44ad'}};
 const CHECK_SLOTS=[{slot:'front',label:'FRONTALE',icon:'📷',video:false},{slot:'back',label:'POSTERIORE',icon:'📷',video:false},{slot:'latdx',label:'LATERALE DESTRO',icon:'📷',video:false},{slot:'latsx',label:'LATERALE SINISTRO',icon:'📷',video:false},{slot:'video',label:'VIDEO POSING',icon:'🎥',video:true}];
 
+  // ===================== RILEVATORE INTERVALLI =====================
+  // Diagnostica del mesociclo ispirata alla Legge del Sette: un ciclo partito
+  // bene tende a rallentare in due punti ("intervalli"), dove serve uno shock
+  // perche' non devii. Qui si limita ad AVVISARE il PT: nessuna modifica
+  // automatica al programma, la decisione resta all'allenatore.
+  var SOGLIE={
+    settimaneMinime:3,     // settimane con dato valido per poter analizzare un esercizio
+    stalloCaricoPct:1.5,   // sotto questo guadagno % il carico e' considerato fermo
+    salitaRpe:0.5,         // aumento di RPE che segnala "stesso peso, piu' fatica"
+    rpeAlto:8.5,           // RPE medio oltre il quale un esercizio e' "faticato"
+    quotaFaticati:0.6,     // quota di esercizi faticati per il secondo intervallo
+    rpeMedioAlto:8.5,      // RPE medio del mesociclo per il secondo intervallo
+    quotaStalli:0.34       // quota di esercizi in stallo per il primo intervallo
+  };
+
+  function rilNum(v){if(v===null||v===undefined||v==='')return NaN;var n=parseFloat(String(v).replace(',','.'));return isNaN(n)?NaN:n;}
+  function rilArr(n,d){var f=Math.pow(10,d===undefined?1:d);return Math.round(n*f)/f;}
+  function rilNome(a){return a.nome;}
+
+  // Aggregazione dei set di lavoro di una settimana: si tiene il TOP SET PER
+  // FATICA (RPE piu' alto, a parita' il carico maggiore) e si usano il suo
+  // carico e il suo RPE. Regola isolata apposta: si cambia solo qui.
+  function aggregaSettimana(sets){
+    var best=null,i,s;
+    for(i=0;i<sets.length;i++){
+      s=sets[i];
+      if(!(s.carico>0)||isNaN(s.rpe))continue;
+      if(best===null||s.rpe>best.rpe||(s.rpe===best.rpe&&s.carico>best.carico))best=s;
+    }
+    return best;
+  }
+
+  // esercizio: {nome, settimane:[{settimana, carico, rpe}]}
+  function analizzaEsercizio(esercizio){
+    var out={nome:(esercizio&&esercizio.nome)||'',gruppo:(esercizio&&esercizio.gruppo)||'',
+      punti:[],settimaneValide:0,sufficiente:false,
+      caricoIni:null,caricoFin:null,deltaCaricoPct:null,
+      rpeIni:null,rpeFin:null,deltaRpe:null,rpeMedio:null,
+      inStallo:false,faticato:false,stato:'insufficiente'};
+    var w=((esercizio&&esercizio.settimane)||[]).filter(function(p){return p&&p.carico>0&&!isNaN(p.rpe);});
+    w.sort(function(a,b){return a.settimana-b.settimana;});
+    out.punti=w;out.settimaneValide=w.length;
+    if(w.length<SOGLIE.settimaneMinime)return out;
+    out.sufficiente=true;
+    var primo=w[0],ultimo=w[w.length-1],somma=0,i;
+    for(i=0;i<w.length;i++)somma+=w[i].rpe;
+    out.caricoIni=primo.carico;out.caricoFin=ultimo.carico;
+    out.deltaCaricoPct=rilArr((ultimo.carico-primo.carico)/primo.carico*100,1);
+    out.rpeIni=primo.rpe;out.rpeFin=ultimo.rpe;
+    out.deltaRpe=rilArr(ultimo.rpe-primo.rpe,1);
+    out.rpeMedio=rilArr(somma/w.length,1);
+    out.inStallo=out.deltaCaricoPct<SOGLIE.stalloCaricoPct&&out.deltaRpe>=SOGLIE.salitaRpe;
+    out.faticato=out.rpeMedio>=SOGLIE.rpeAlto;
+    out.stato=out.faticato?'faticato':(out.inStallo?'stallo':'salita');
+    return out;
+  }
+
+  function valutaMesociclo(esercizi){
+    var analisi=(esercizi||[]).map(analizzaEsercizio);
+    var validi=analisi.filter(function(a){return a.sufficiente;});
+    var stalli=validi.filter(function(a){return a.inStallo;});
+    var faticati=validi.filter(function(a){return a.faticato;});
+    var somma=0,i;
+    for(i=0;i<validi.length;i++)somma+=validi[i].rpeMedio;
+    var rpeMedio=validi.length?rilArr(somma/validi.length,1):null;
+    var intervallo='nessuno';
+    if(validi.length){
+      // il secondo intervallo ha priorita' sul primo
+      if(faticati.length/validi.length>=SOGLIE.quotaFaticati&&rpeMedio>=SOGLIE.rpeMedioAlto)intervallo='secondo';
+      else if(stalli.length&&stalli.length/validi.length>=SOGLIE.quotaStalli)intervallo='primo';
+    }
+    return Object.assign({},{intervallo:intervallo,rpeMedio:rpeMedio,analisi:analisi,
+      inStallo:stalli.map(rilNome),faticati:faticati.map(rilNome),
+      eserciziValidi:validi.length,eserciziTotali:analisi.length});
+  }
+
+  function contenutoAlert(intervallo){
+    if(intervallo==='secondo')return {nota:'Si-Do',titolo:'Secondo intervallo',icona:'🛑',
+      shock:'Deload / scarico',
+      spiegazione:'Fatica alta e diffusa su tutto il mesociclo: il ciclo ha dato quello che poteva. Riduci volume e intensità per chiudere in sicurezza e ripartire.',
+      bg:'rgba(192,57,43,.09)',bordo:'#dda69f',col:'#a8332a'};
+    if(intervallo==='primo')return {nota:'Mi-Fa',titolo:'Primo intervallo',icona:'⚠️',
+      shock:'Shock di variazione',
+      spiegazione:'Stesso peso, più fatica: il carico è fermo mentre l\'RPE sale. Serve una variazione — schema di ripetizioni, rotazione degli esercizi, tempo di esecuzione, enfasi.',
+      bg:'rgba(216,168,48,.14)',bordo:'#e0c477',col:'#8a6d1d'};
+    return {nota:'Ottava in salita',titolo:'Nessun intervallo',icona:'✅',
+      shock:'Nessuno shock necessario',
+      spiegazione:'Carichi in progressione e RPE sotto controllo: il ciclo sta salendo. Prosegui come previsto.',
+      bg:'rgba(24,120,120,.10)',bordo:'#9fcfcc',col:'#146a6a'};
+  }
+
+  // Adatta il modello week-first dell'app alla forma piatta del motore.
+  // Legge i carichi EFFETTIVI del Diario (state.logs), non il pianificato:
+  // nel pianificato il carico puo' essere in %1RM o xRM e l'RPE e' un target.
+  function adattaDatiPerRilevatore(statoApp){
+    var st=statoApp||{},schede=st.schede||[],sc=null,i;
+    for(i=0;i<schede.length;i++)if(schede[i].id===st.activeId)sc=schede[i];
+    if(!sc)sc=schede[0];
+    if(!sc)return [];
+    var blocco=(st.logs||{})[sc.id]||{};
+    var fuori=[];
+    (sc.esercizi||[]).forEach(function(es){
+      if(!es||!es.nome)return;
+      var nW=((es.settimane||[]).length)||sc.nW||0,w,settimane=[];
+      for(w=0;w<nW;w++){
+        var sets=[];
+        (blocco[w]||[]).forEach(function(l){
+          if(!l||l.esId!==es.id)return;
+          sets.push({carico:rilNum(l.kg),rpe:rilNum(l.rpe),rip:rilNum(l.rip),serieIdx:l.serieIdx});
+        });
+        var top=aggregaSettimana(sets);
+        if(top)settimane.push({settimana:w+1,carico:top.carico,rpe:top.rpe});
+      }
+      fuori.push({nome:es.nome,gruppo:es.gruppo,settimane:settimane});
+    });
+    return fuori;
+  }
+  // =================== FINE RILEVATORE INTERVALLI ===================
+
 function estRM(logs,esId,crit){let best=null,bestW=-1;Object.values(logs||{}).forEach(b=>Object.keys(b||{}).forEach(w=>{(b[w]||[]).forEach(l=>{if(l.esId!==esId)return;const rm=brzycki(l.kg,l.rip);if(rm==null)return;const wi=+w;
   if(crit==='max'){if(best===null||rm>best){best=rm;bestW=wi;}}
   else{if(wi>bestW){best=rm;bestW=wi;}else if(wi===bestW&&(best===null||rm>best))best=rm;}
@@ -2402,6 +2581,15 @@ class Component extends DCLogic {
     if(curSeq>(this._seq||0)&&!this._dirty)return false;
     this._seq=Math.max(curSeq,this._seq||0)+1;this._dirty=false;rest._seq=this._seq;
     const json=JSON.stringify(rest);localStorage.setItem('jpt_dc_v1',json);if(!looksBlank(rest)){try{localStorage.setItem('jpt_dc_v1_bak',json);}catch(e){}}return true;}catch(e){return false;}}
+  _salvaRilevatore(esito){
+    clearTimeout(this._rilSv);
+    this._rilSv=setTimeout(function(){
+      try{localStorage.setItem('jpt_rilevatore_v1',JSON.stringify({quando:Date.now(),
+        intervallo:esito.intervallo,rpeMedio:esito.rpeMedio,
+        inStallo:esito.inStallo,faticati:esito.faticati,
+        eserciziValidi:esito.eserciziValidi,eserciziTotali:esito.eserciziTotali}));}catch(e){}
+    },400);
+  }
   componentDidUpdate(){this._dirty=true;clearTimeout(this._sv);const el=document.getElementById('__saveIndic');if(el){el.textContent='⟳ Salvataggio…';el.style.color='#9a6a08';el.style.opacity='1';}this._sv=setTimeout(()=>{const okSave=this.persist();const e2=document.getElementById('__saveIndic');if(e2){if(okSave){const t=new Date();e2.textContent='✓ Salvato '+('0'+t.getHours()).slice(-2)+':'+('0'+t.getMinutes()).slice(-2);e2.style.color='#1e8e5a';}else{e2.textContent='⚠ Non salvato — usa Export';e2.style.color='#c0392b';}e2.style.opacity='1';}},600);}
 
   active(){return this.state.schede.find(s=>s.id===this.state.activeId)||this.state.schede[0];}
@@ -3348,8 +3536,49 @@ table{width:100%;border-collapse:collapse;font-size:9px}th{background:#183048;co
     out.onVolView=this.onVolView;out.onCmpToggle=this.onCmpToggle;out.onCmpGroup=this.onCmpGroup;
     const segB='border:none;border-radius:999px;padding:8px 16px;font-weight:800;font-size:13px;cursor:pointer;font-family:Barlow Condensed,sans-serif;';
     const segOn=segB+'background:#183048;color:#fff';const segOff=segB+'background:#fff;color:#6a7280;border:1px solid #dde3e3';
-    out.isVolConfronto=st.volView==='confronto';out.isVol1RM=st.volView==='rm1';out.isVolAttuale=!out.isVolConfronto&&!out.isVol1RM;
-    out.volViewStyle={confronto:out.isVolConfronto?segOn:segOff,attuale:out.isVolAttuale?segOn:segOff,rm1:out.isVol1RM?segOn:segOff};
+    out.isVolConfronto=st.volView==='confronto';out.isVol1RM=st.volView==='rm1';out.isVolRilev=st.volView==='rilev';out.isVolAttuale=!out.isVolConfronto&&!out.isVol1RM&&!out.isVolRilev;
+    out.volViewStyle={confronto:out.isVolConfronto?segOn:segOff,attuale:out.isVolAttuale?segOn:segOff,rm1:out.isVol1RM?segOn:segOff,rilev:out.isVolRilev?segOn:segOff};
+    if(out.isVolRilev){
+      const esRil=adattaDatiPerRilevatore(st);
+      const esito=valutaMesociclo(esRil);
+      const al=contenutoAlert(esito.intervallo);
+      this._salvaRilevatore(esito);
+      out.rilNota=al.nota;out.rilTitolo=al.titolo;out.rilIcona=al.icona;out.rilShock=al.shock;out.rilSpiegazione=al.spiegazione;
+      out.rilCardStyle='background:'+al.bg+';border:1.5px solid '+al.bordo+';border-radius:16px;padding:14px 16px;margin-bottom:14px';
+      out.rilTitoloStyle='font-family:Barlow Condensed,sans-serif;font-weight:800;font-size:19px;color:'+al.col;
+      out.rilShockStyle='display:inline-block;background:'+al.col+';color:#fff;border-radius:999px;padding:5px 13px;font-weight:800;font-size:12.5px;margin-top:8px';
+      out.rilSpiegStyle='font-size:13px;color:#3a414c;margin-top:9px;line-height:1.45';
+      const nomeSc=this.active();
+      out.rilScheda=(nomeSc&&nomeSc.nome)||'—';
+      out.rilVuoto=esito.eserciziValidi===0;
+      out.rilPieno=esito.eserciziValidi>0;
+      out.rilRiepilogo=esito.eserciziValidi+' esercizi analizzati su '+esito.eserciziTotali+
+        (esito.rpeMedio!==null?(' · RPE medio del mesociclo '+esito.rpeMedio):'');
+      out.rilStalliTxt=esito.inStallo.length?esito.inStallo.join(' · '):'';
+      out.rilHasStalli=esito.inStallo.length>0;
+      out.rilFaticatiTxt=esito.faticati.length?esito.faticati.join(' · '):'';
+      out.rilHasFaticati=esito.faticati.length>0;
+      out.rilSogliaTxt='Servono almeno '+SOGLIE.settimaneMinime+' settimane con carico e RPE segnati nel Diario.';
+      const tagS='display:inline-block;border-radius:999px;padding:3px 9px;font-size:10.5px;font-weight:800;white-space:nowrap;';
+      const TAG={salita:{t:'in salita',s:tagS+'background:rgba(35,168,90,.14);color:#1b7a45'},
+        stallo:{t:'stallo',s:tagS+'background:rgba(216,168,48,.20);color:#8a6d1d'},
+        faticato:{t:'faticato',s:tagS+'background:rgba(192,57,43,.13);color:#a8332a'},
+        insufficiente:{t:'dati insuff.',s:tagS+'background:#eef0f2;color:#8a929b'}};
+      out.rilRighe=esito.analisi.map(function(a){
+        const ok=a.sufficiente,tg=TAG[a.stato]||TAG.insufficiente;
+        const segno=function(v){return (v>0?'+':'')+v;};
+        return {nome:a.nome,gruppo:a.gruppo||'',
+          gruppoStyle:'font-size:10px;font-weight:700;color:'+((GCOL[a.gruppo])||'#9aa0a8'),
+          caricoTxt:ok?(a.caricoIni+' → '+a.caricoFin+' kg'):('W valide: '+a.settimaneValide),
+          dCaricoTxt:ok?(segno(a.deltaCaricoPct)+'%'):'—',
+          dCaricoStyle:'font-weight:800;font-size:12.5px;color:'+(!ok?'#c3cccc':(a.deltaCaricoPct>=SOGLIE.stalloCaricoPct?'#23a85a':'#d0453f')),
+          rpeTxt:ok?(a.rpeIni+' → '+a.rpeFin):'—',
+          dRpeTxt:ok?segno(a.deltaRpe):'—',
+          dRpeStyle:'font-weight:800;font-size:12.5px;color:'+(!ok?'#c3cccc':(a.deltaRpe>=SOGLIE.salitaRpe?'#d0453f':'#23a85a')),
+          rpeMedioTxt:ok?String(a.rpeMedio):'—',
+          tag:tg.t,tagStyle:tg.s};
+      });
+    }
     if(out.isVol1RM){
       const byName={};
       st.schede.forEach(s=>s.esercizi.forEach(e=>{if(!e.nome)return;const k=e.nome;if(!byName[k])byName[k]={nome:k,gruppo:e.gruppo,ids:[],manual:null,nW:0};byName[k].ids.push({sc:s.id,es:e.id});byName[k].nW=Math.max(byName[k].nW,e.settimane.length);const man=num(e.oneRM);if(man&&(byName[k].manual===null||man>byName[k].manual))byName[k].manual=man;}));

@@ -13,6 +13,7 @@ Un unico file autonomo: **si apre con doppio click nel browser** (Chrome, Edge, 
 - **🍎 Alimentazione** — fabbisogno energetico (BMR/TDEE), macro target e piano settimanale generato con AI (dentro claude.ai) o via prompt da copiare
 - **🗂 Clienti / 👤 Atleta** — anagrafica, quadro clinico, plicometria, circonferenze, test massimali, somatotipo, check fotografici, stampa del diario brandizzato
 - **📈 Storico 1RM** (in Volume → Forza) — andamento del massimale stimato settimana per settimana, calcolato dal miglior set effettivo registrato nel Diario (formula Brzycki), con statistiche e confronto col 1RM impostato
+- **🔔 Rilevatore intervalli** (in Volume) — diagnostica del mesociclo in corso ispirata alla Legge del Sette: legge carichi e RPE *effettivi* del Diario e avvisa quando il ciclo devia. **Primo intervallo (Mi-Fa)**: carico fermo mentre l'RPE sale → shock di variazione. **Secondo intervallo (Si-Do)**, prioritario: fatica alta e diffusa → deload. Altrimenti **ottava in salita**. Solo avviso: il programma non viene toccato. Tabella per esercizio con Δ carico %, Δ RPE e stato; soglie tutte in `SOGLIE`, aggregazione settimanale (top set per fatica) isolata in `aggregaSettimana`
 - **🌙 Tema scuro** — selettore Chiaro/Scuro nell'header, con preferenza ricordata
 - **🧠 Test** — questionari di valutazione dello stress (generale e da allenamento) con sintesi incrociata, collegati all'atleta
 - **📤 Scheda al cliente** — vedi sotto: il cliente riceve la scheda sul telefono, segna i carichi e li rimanda con un tap
