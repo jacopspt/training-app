@@ -2151,6 +2151,31 @@ Distensioni Smith" style="flex:1;min-width:200px;min-height:62px;resize:vertical
   </div>
   </sc-if>
 
+  <!-- ============ MODAL: ALLEGATO DELLA MAIL ============ -->
+  <sc-if value="{{ mailHintOpen }}" hint-placeholder-val="{{ false }}">
+  <div sc-camel-on-click="{{ onCloseMailHint }}" style="position:fixed;inset:0;z-index:100;background:rgba(20,30,45,.45);display:flex;align-items:center;justify-content:center;padding:20px">
+    <div sc-camel-on-click="{{ onStop }}" style="width:100%;max-width:420px;background:#fff;border-radius:18px;padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.3)">
+      <div style="font-size:15px;font-weight:800;margin-bottom:3px">📎 Ora allega la scheda</div>
+      <div style="font-size:12px;color:#9aa0a8;margin-bottom:12px">Nessun sito può allegare un file a una mail: il file è pronto, va agganciato con un tocco.</div>
+      <div style="background:#f4f6f9;border:1px solid #e5eaea;border-radius:12px;padding:11px 13px;margin-bottom:12px">
+        <div style="font-size:10px;font-weight:800;letter-spacing:.07em;color:#6a7280;text-transform:uppercase;margin-bottom:4px">File scaricato</div>
+        <div style="font-size:13.5px;font-weight:800;color:#183048;word-break:break-all">{{ mailHintFile }}</div>
+        <div style="font-size:11.5px;color:#9aa0a8;margin-top:3px">nella cartella Download</div>
+      </div>
+      <sc-if value="{{ mailHintAperta }}" hint-placeholder-val="{{ false }}">
+        <div style="font-size:13px;color:#3a414c;line-height:1.5">Nella mail appena aperta per <b>{{ mailHintTo }}</b>:<br>1. tocca la graffetta 📎<br>2. scegli il file qui sopra<br>3. invia</div>
+      </sc-if>
+      <sc-if value="{{ mailHintBloccata }}" hint-placeholder-val="{{ false }}">
+        <div style="background:rgba(216,168,48,.14);border:1px solid #e0c477;border-radius:12px;padding:11px 13px;font-size:12.5px;color:#8a6d1d;line-height:1.45">
+          Il browser ha bloccato la finestra della posta. Consenti i popup per questo sito (icona nella barra degli indirizzi) oppure apri la mail da qui:
+          <a href="{{ mailHintLink }}" target="_blank" rel="noopener" style="display:inline-block;margin-top:8px;background:#183048;color:#fff;text-decoration:none;border-radius:999px;padding:7px 13px;font-weight:800;font-size:12.5px">✉️ Apri la mail per {{ mailHintTo }}</a>
+        </div>
+      </sc-if>
+      <button sc-camel-on-click="{{ onCloseMailHint }}" style="width:100%;margin-top:14px;background:#187878;border:1.5px solid #187878;color:#fff;border-radius:999px;padding:10px;font-weight:800;font-size:13px;cursor:pointer">Ho capito</button>
+    </div>
+  </div>
+  </sc-if>
+
   <!-- ============ MODAL: SALVA ============ -->
   <sc-if value="{{ saveModalOpen }}" hint-placeholder-val="{{ false }}">
   <div sc-camel-on-click="{{ onCloseSaveModal }}" style="position:fixed;inset:0;z-index:100;background:rgba(20,30,45,.45);display:flex;align-items:center;justify-content:center;padding:20px">
@@ -2538,7 +2563,7 @@ class Component extends DCLogic {
       clienti:[makeCliente()],clienteId:null,cliSearch:'',
       volView:'confronto',cmpSel:{},cmpGroup:'all',rm1Sel:null,theme:'light',
       nutriDay:0,nutriView:'piano',promptOpen:false,genLoading:false,genErr:'',genProgress:null,genPromptCopy:'',
-      tests:{},testTab:'extra'};
+      tests:{},testTab:'extra',mailHint:null};
     def.activeId=def.schede[0].id;def.clienteId=def.clienti[0].id;
     const validScheda=(s)=>s&&typeof s==='object'&&Array.isArray(s.esercizi)&&s.esercizi.every(e=>e&&Array.isArray(e.settimane)&&e.settimane.every(w=>w&&Array.isArray(w.serie)))&&(!s.cardio||(Array.isArray(s.cardio)&&s.cardio.every(c=>Array.isArray(c.settimane)&&c.settimane.every(w=>w&&Array.isArray(w.attivita)))));
     // Persistenza completa: clienti, schede di lavoro, log, note, storico programmi salvati, progressioni, modelli e DB esercizi restano in memoria.
@@ -2576,7 +2601,7 @@ class Component extends DCLogic {
     try{const ex=JSON.parse(localStorage.getItem('jpt_dc_v1'));this._seq=(ex&&ex._seq)||0;}catch(e){this._seq=0;}
     this._flush=()=>{this.persist();};
     window.addEventListener('beforeunload',this._flush);window.addEventListener('pagehide',this._flush);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')this._flush();});}
-  persist(){try{const{saveModal,progEditor,pd,panel,saveSel,saveClienteId,dbDraft,storageOK,picker,pickerPos,bulkText,splitModal,cliSearch,bulkSerie,gw,cf,progFilter,_pt,genLoading,genErr,genProgress,promptOpen,genPromptCopy,rm1Sel,theme,...rest}=this.state;
+  persist(){try{const{saveModal,mailHint,progEditor,pd,panel,saveSel,saveClienteId,dbDraft,storageOK,picker,pickerPos,bulkText,splitModal,cliSearch,bulkSerie,gw,cf,progFilter,_pt,genLoading,genErr,genProgress,promptOpen,genPromptCopy,rm1Sel,theme,...rest}=this.state;
     // Guardia multi-finestra: non sovrascrivere dati salvati da un'istanza più recente
     let curSeq=0;try{const ex=JSON.parse(localStorage.getItem('jpt_dc_v1'));curSeq=(ex&&ex._seq)||0;}catch(e){}
     if(curSeq>(this._seq||0)&&!this._dirty)return false;
@@ -2994,18 +3019,17 @@ class Component extends DCLogic {
     const cli=this.activeCli();const em=(cli.anag.email||'').trim();
     if(!em){this._toast('Aggiungi l\'email nell\'anagrafica del cliente (tab Atleta)');return;}
     if(!this.state.schede.some(s=>s.esercizi.some(x=>x.nome))){this._toast('La scheda di lavoro è vuota');return;}
-    const nome=this._nomeFileScheda();
-    if(!confirm('L\'ALLEGATO VA AGGIUNTO A MANO\n\nNessun sito può allegare un file a una mail al posto tuo: io scarico la scheda, tu la agganci con un tocco.\n\n1. Apro la mail già scritta per '+em+'\n2. Tocca la graffetta 📎 e scegli «'+nome+'» (cartella Download)\n3. Invia\n\nProcedo?'))return;
     const sub=encodeURIComponent('La tua scheda di allenamento — JacopsPT');
     const body=encodeURIComponent('Ciao '+(cli.anag.nome||'')+',\n\nin allegato trovi la tua scheda di allenamento.\nAprila con il browser (Chrome/Safari): puoi consultare il programma, guardare i video degli esercizi, compilare kg e ripetizioni nel Diario e stampare tutto.\nI dati restano salvati sul tuo dispositivo: quando vuoi, tocca "Invia i miei carichi al coach" e scegli WhatsApp: mi arriva il codice con i tuoi carichi.\n\nBuon allenamento!\n'+((cli.cover&&cli.cover.coach)||'JacopsPT'));
     const gm='https://mail.google.com/mail/?view=cm&fs=1&to='+encodeURIComponent(em)+'&su='+sub+'&body='+body;
-    const w=window.open(gm,'_blank','noopener');
+    // PRIMA di ogni await e senza dialoghi davanti: altrimenti il browser la blocca
+    const w=window.open(gm,'_blank');try{if(w)w.opener=null;}catch(e){}
     this._toast('Preparo la scheda…');
     const f=await this._fileScheda();
     this._scaricaScheda(f);
-    this._toast(w?('✉️ Mail aperta — ora allega «'+f.nome+'» dalla cartella Download')
-                :('⚠️ Gmail bloccato dal browser (consenti i popup) — «'+f.nome+'» è comunque nella cartella Download'));
+    this.setState({mailHint:{nome:f.nome,email:em,aperta:!!w}});
   };
+  onCloseMailHint=()=>this.setState({mailHint:null});
   // ---- scheda del cliente: costruzione, condivisione, scaricamento ----
   _nomeFileScheda(){
     const cli=this.activeCli();
@@ -3714,6 +3738,10 @@ table{width:100%;border-collapse:collapse;font-size:9px}th{background:#183048;co
     }else{out.pickerSessName='';out.pickerCustom='';out.pickerChips=[];out.pickerList=[];}
 
     // modals
+    out.mailHintOpen=!!st.mailHint;out.onCloseMailHint=this.onCloseMailHint;
+    if(st.mailHint){out.mailHintFile=st.mailHint.nome;out.mailHintTo=st.mailHint.email;
+      out.mailHintAperta=!!st.mailHint.aperta;out.mailHintBloccata=!st.mailHint.aperta;
+      out.mailHintLink='https://mail.google.com/mail/?view=cm&fs=1&to='+encodeURIComponent(st.mailHint.email);}
     out.saveModalOpen=st.saveModal;out.onCloseSaveModal=this.onCloseSaveModal;out.saveName=st.saveName;out.onSaveName=this.onSaveName;out.onConfirmSave=this.onConfirmSave;out.onToggleSaveScheda=this.onToggleSaveScheda;
     out.saveSchedeList=st.schede.map(s=>({id:s.id,nome:s.nome,checked:!!st.saveSel[s.id]}));
     out.saveClienteId=st.saveClienteId||'';out.onSaveCliente=this.onSaveCliente;
