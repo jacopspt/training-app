@@ -489,7 +489,7 @@ html.jpt-dark img,html.jpt-dark video,html.jpt-dark iframe{filter:invert(1) hue-
     <div style="display:flex;flex-direction:column;gap:8px">
       <sc-for list="{{ salvateVM }}" as="sv" hint-placeholder-count="0">
         <div style="background:#fff;border:1px solid #e5eaea;border-radius:10px;padding:10px 13px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <div style="flex:1;min-width:140px"><div style="font-size:13.5px;font-weight:700;color:#1c2127">{{ sv.nome }}</div><div style="font-size:11px;color:#9aa0a8">{{ sv.meta }}</div>
+          <div style="flex:1;min-width:140px"><input autocomplete="off" value="{{ sv.nome }}" sc-camel-on-input="{{ onRenameSalvata }}" data-id="{{ sv.id }}" placeholder="Nome del programma" title="Scrivi qui per rinominare il programma" style="width:100%;max-width:300px;background:#fff;border:1px solid #e5eaea;border-radius:8px;padding:5px 9px;font-size:13.5px;font-weight:700;color:#1c2127"><div style="font-size:11px;color:#9aa0a8">{{ sv.meta }}</div>
             <div style="display:flex;align-items:center;gap:5px;margin-top:6px"><span style="font-size:11px;font-weight:800;color:#6a7280">Assegna a:</span><sc-raw-select value="{{ sv.assignId }}" sc-camel-on-change="{{ onAssignSalvata }}" data-id="{{ sv.id }}" style="font-size:11.5px;font-weight:700;color:#183048;background:#f4f6f9;border:1px solid #dfe3e9;border-radius:7px;padding:4px 7px;cursor:pointer"><sc-for list="{{ sv.assignOpts }}" as="o" hint-placeholder-count="1"><option value="{{ o.k }}">{{ o.label }}</option></sc-for></sc-raw-select></div>
           </div>
           <button sc-camel-on-click="{{ onLoadSalvata }}" data-id="{{ sv.id }}" style="background:rgba(41,128,185,.12);border:1px solid rgba(41,128,185,.35);color:#1f6aa0;border-radius:999px;padding:7px 13px;font-weight:700;font-size:12.5px;cursor:pointer">Carica</button>
@@ -3068,6 +3068,7 @@ body{font-family:'Inter',Arial,sans-serif;color:#1c2127;-webkit-print-color-adju
   onAddCli=()=>{const c=makeCliente();this.setState(st=>({clienti:st.clienti.concat([c]),clienteId:c.id}));};
   onDelCli=()=>{const cur=this.activeCli();if(!confirm('Eliminare l\'atleta "'+cliLabel(cur)+'" con tutti i suoi dati?'))return;const snap=clone(cur);this.setState(st=>{if(st.clienti.length<=1){const fresh=makeCliente();return {clienti:[fresh],clienteId:fresh.id};}const clienti=st.clienti.filter(c=>c.id!==st.clienteId);return {clienti,clienteId:clienti[0].id};});this._toast('Atleta eliminato',()=>this.setState(st=>({clienti:st.clienti.concat([snap]),clienteId:snap.id})));};
   onDupCli=(e)=>{const id=e.currentTarget.dataset.id;this.setState(st=>{const c=st.clienti.find(x=>x.id===id);if(!c)return{};const cl=clone(c);cl.id=uid();cl.anag=Object.assign({},cl.anag,{nome:((cl.anag.nome||'')+' (copia)').trim()});cl.storico=[];return {clienti:st.clienti.concat([cl])};});this._toast('Atleta duplicato');};
+  onRenameSalvata=(e)=>{const id=e.currentTarget.dataset.id,v=e.target.value;this.setState(st=>({schedeSalvate:st.schedeSalvate.map(sv=>sv.id===id?Object.assign({},sv,{nome:v}):sv)}));};
   onDupSalvata=(e)=>{const id=e.currentTarget.dataset.id;this.setState(st=>{const sv=st.schedeSalvate.find(x=>x.id===id);if(!sv)return{};const cl=clone(sv);cl.id=uid();cl.nome=sv.nome+' (copia)';cl.data=new Date().toLocaleDateString('it-IT');cl.schede.forEach(s=>{s.id=uid();});return {schedeSalvate:st.schedeSalvate.concat([cl])};});this._toast('Programma duplicato');};
   mutCli(path,val){this.setState(st=>{const i=st.clienti.findIndex(c=>c.id===st.clienteId);if(i<0)return{};const arr=st.clienti.slice();const c=clone(arr[i]);setPath(c,path,val);arr[i]=c;return {clienti:arr};});}
   onCli=(e)=>{const k=e.currentTarget.dataset.k;let v=e.target.value;
@@ -3626,7 +3627,7 @@ table{width:100%;border-collapse:collapse;font-size:9px}th{background:#183048;co
 
     // ---- panels ----
     out.salvateVM=st.schedeSalvate.map(sv=>({id:sv.id,nome:sv.nome,meta:sv.data+' · '+sv.schede.map(s=>s.nome).join(', '),atleta:sv.atleta||'',hasAtleta:!!sv.atleta,assignId:sv.clienteId||'',assignOpts:[{k:'',label:'— Non assegnata —',sel:!sv.clienteId}].concat(st.clienti.map(c=>({k:c.id,label:cliLabel(c),sel:c.id===sv.clienteId})))}));
-    out.salvateEmpty=st.schedeSalvate.length===0;out.onLoadSalvata=this.onLoadSalvata;out.onDelSalvata=this.onDelSalvata;out.onOpenSaveModal=this.onOpenSaveModal;out.onAssignSalvata=this.onAssignSalvata;
+    out.salvateEmpty=st.schedeSalvate.length===0;out.onLoadSalvata=this.onLoadSalvata;out.onDelSalvata=this.onDelSalvata;out.onOpenSaveModal=this.onOpenSaveModal;out.onAssignSalvata=this.onAssignSalvata;out.onRenameSalvata=this.onRenameSalvata;
     const pgF=st.progFilter||'';
     out.progFilters=['volume','densita','intensita','mista'].map(k=>{const on=pgF===k;const c=PROG_TIPI[k].col;const n=st.cartella.filter(p=>(p.tipo||'mista')===k).length;
       return{v:k,label:PROG_TIPI[k].label+(n?' '+n:''),style:'border-radius:7px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer;'+(on?'background:'+c+';color:#fff;border:1px solid '+c:'background:#fff;color:'+c+';border:1px solid '+c+'66')};});
