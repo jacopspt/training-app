@@ -8,6 +8,7 @@ Un unico file autonomo: **si apre con doppio click nel browser** (Chrome, Edge, 
 
 - **⚡ Costruttore Split** — composizione rapida della suddivisione settimanale
 - **Schede** — programmazione per settimana (4–12), serie con tipo (Fisso, Range, Max Rep, EMOM, Tempo, Test), TUT, recuperi, RPE, % 1RM, supersets, link YouTube per esercizio
+- **📊 Volume per gruppo** (in Schede) — tracker in presa diretta delle serie assegnate a ogni gruppo muscolare mentre componi il programma: barre ordinate per volume, totale e numero di esercizi. Segue i tasti *Vista*: con una settimana selezionata conta quella settimana, con *Tutte* mostra la media a settimana. Si apre e chiude con **▾ Nascondi / ▸ Mostra** e la scelta viene ricordata. Le righe senza nome non vengono conteggiate e sono segnalate
 - **Diario** — registrazione di kg/ripetizioni/RPE effettivi con confronto sul pianificato
 - **Volume** — grafici volume/intensità/densità per settimana e gruppo muscolare
 - **🍎 Alimentazione** — fabbisogno energetico (BMR/TDEE), macro target e piano settimanale generato con AI (dentro claude.ai) o via prompt da copiare
