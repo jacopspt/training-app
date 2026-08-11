@@ -1175,6 +1175,9 @@ Distensioni Smith" style="flex:1;min-width:200px;min-height:62px;resize:vertical
             </div>
           </sc-if>
           <div style="font-size:10.5px;color:#9aa0a8;margin-top:9px">{{ trackSotto }} · usa i tasti Vista qui sopra per passare da una settimana all'altra</div>
+          <sc-if value="{{ trackEmom }}" hint-placeholder-val="{{ false }}">
+            <div style="font-size:10.5px;color:#187878;margin-top:3px">{{ trackEmomTxt }}</div>
+          </sc-if>
           <sc-if value="{{ trackSenzaNome }}" hint-placeholder-val="{{ false }}">
             <div style="font-size:10.5px;color:#c08a1d;margin-top:3px">{{ trackSenzaNomeTxt }}</div>
           </sc-if>
@@ -2448,6 +2451,11 @@ function clone(x){return JSON.parse(JSON.stringify(x));}
 function rpeCol(v){const n=num(v);if(!v||isNaN(n))return '#9aa0a8';if(n<=5)return '#27ae60';if(n<=7)return '#e0900a';if(n<=9)return '#dd6b1f';return '#c0392b';}
 function densCol(r){const m={'15s':'#c0392b','30s':'#e67e22','45s':'#e0900a','60s':'#27ae60','90s':'#2d6a9f','2min':'#183048','3min':'#16537e','4min':'#0d3b5e','5min':'#0a2d4a'};return m[r]||'#2d6a9f';}
 function ripStr(s){if(s.tipo==='test')return s.rip?'test '+s.rip:'test';if(s.tipo==='fisso')return s.rip||'';if(s.tipo==='maxrep')return s.rip?s.rip+'+':'max';if(s.tipo==='range')return (s.ripMin&&s.ripMax)?s.ripMin+'-'+s.ripMax:'';if(s.tipo==='emom'){if(s.minuti&&s.rip)return 'EMOM '+s.minuti+"'×"+s.rip;if(s.minuti)return 'EMOM '+s.minuti+"'";if(s.rip)return 'EMOM ×'+s.rip;return 'EMOM';}if(s.tipo==='tempo')return s.secondi?s.secondi+'sec':'';return '';}
+function serieEquivalenti(s){
+  if(!s)return 0;
+  if(s.tipo==='emom'){const m=parseFloat(String(s.minuti||'').replace(',','.'));return (isFinite(m)&&m>0)?Math.round(m):1;}
+  return 1;
+}
 function caricoStr(s){const m=serieMode(s);if(m==='pct')return s.pct?s.pct+'%':'';if(m==='rm')return s.rm?s.rm+' RM':'';return s.kg?s.kg+'kg':'';}
 function serieMode(s){return s.caricoMode||(s.usePct?'pct':'kg');}
 function caricoVM(s){const m=serieMode(s);const map={kg:{v:s.kg,f:'kg',ph:'kg',lab:'kg',bg:'#fff',col:'#9aa0a8'},pct:{v:s.pct,f:'pct',ph:'%',lab:'%',bg:'rgba(41,128,185,.15)',col:'#1f6aa0'},rm:{v:s.rm,f:'rm',ph:'RM',lab:'RM',bg:'rgba(192,57,43,.13)',col:'#c0392b'}};return map[m];}
@@ -3607,7 +3615,7 @@ table{width:100%;border-collapse:collapse;font-size:9px}th{background:#183048;co
       out.trackSeduteTxt=lista.map(s=>s.nome||'senza nome').join(' + ');
       out.trackPiuSedute=lista.length>1;
 
-      const conta={},esPerG={};let senzaNome=0,nEs=0,tot=0;
+      const conta={},esPerG={};let senzaNome=0,nEs=0,tot=0,emom=0;
       lista.forEach(s=>{
         const nWs=Math.max(1,+s.nW||(((s.esercizi||[])[0]||{}).settimane||[]).length||1);
         const div=(swv>=0)?1:nWs;                    // per settimana, non per programma
@@ -3616,8 +3624,9 @@ table{width:100%;border-collapse:collapse;font-size:9px}th{background:#183048;co
           nEs++;
           const g=ex.gruppo||GRUPPI[0];
           let n=0;
-          if(swv>=0){const wk=(ex.settimane||[])[swv];if(wk&&wk.serie)n=wk.serie.length;}
-          else (ex.settimane||[]).forEach(wk=>{if(wk&&wk.serie)n+=wk.serie.length;});
+          const somma=wk=>{if(!wk||!wk.serie)return 0;let q=0;wk.serie.forEach(sr=>{q+=serieEquivalenti(sr);if(sr&&sr.tipo==='emom')emom++;});return q;};
+          if(swv>=0)n=somma((ex.settimane||[])[swv]);
+          else (ex.settimane||[]).forEach(wk=>{n+=somma(wk);});
           const v=n/div;
           conta[g]=(conta[g]||0)+v;esPerG[g]=(esPerG[g]||0)+(n>0?1:0);tot+=v;
         });
@@ -3641,6 +3650,8 @@ table{width:100%;border-collapse:collapse;font-size:9px}th{background:#183048;co
       out.trackSotto=(tutte?'Serie settimanali sommate su tutte le sedute del programma: ':'Solo la seduta aperta: ')+out.trackSeduteTxt+
         ((swv>=0)?('. Conteggio della settimana '+(swv+1)+'.'):'. Media sulle settimane di ogni seduta.');
       out.trackEsTxt=nEs+(nEs===1?' esercizio':' esercizi');
+      out.trackEmom=emom>0;
+      out.trackEmomTxt="Gli EMOM valgono i loro minuti: EMOM 5' × 3 rep = 5 serie.";
       out.trackSenzaNome=senzaNome>0;
       out.trackSenzaNomeTxt=senzaNome+(senzaNome===1?' riga senza nome non conteggiata':' righe senza nome non conteggiate');
     }
