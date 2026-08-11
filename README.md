@@ -47,7 +47,8 @@ Funziona senza server e senza account: la scheda è un file, i carichi tornano c
 1. **Coach — 📤 Manda al cliente**: su telefono e tablet apre il foglio di condivisione di sistema **con il file dentro**, così WhatsApp o Mail lo ricevono come vero allegato; su computer scarica `scheda-<nome>.html` da inviare a mano. Con **✉️ Manda per mail** la scheda viene scaricata *prima* di aprire la mail già scritta: l'allegato va poi agganciato con la graffetta, perché nessuna pagina web può allegare file a una mail al posto tuo.
 2. **Cliente**: apre il file col browser del telefono (meglio se lo aggiunge alla schermata Home). Vede scheda e video, e nel **Diario** segna kg, ripetizioni e RPE di ogni serie — il layout diventa a schede su schermo stretto e ogni modifica si salva sul dispositivo.
 3. **Cliente — 📤 Invia i miei carichi al coach**: sceglie **WhatsApp** (messaggio già pronto con un codice `JPT1…`), **Copia il codice** o **Scarica il file**.
-4. **Coach — 📥 Ricevi carichi (WhatsApp)**: incolla il codice ricevuto (oppure **📥 Ricevi carichi (file)** se ti ha mandato il `.json`). I valori entrano nel Diario, con scelta se sovrascrivere o riempire solo le celle vuote, e alimentano Volume e Storico 1RM.
+4. **Coach — pronto per il prossimo**: dopo l'invio, se il programma è già in 📁 Salvate la sezione Schede si ripresenta vuota al rientro (con **↩ Ripristina** per tornare indietro); se non è ancora salvato, un avviso propone **✅ Salva e inizia una nuova scheda** invece di cancellarlo.
+5. **Coach — 📥 Ricevi carichi (WhatsApp)**: incolla il codice ricevuto (oppure **📥 Ricevi carichi (file)** se ti ha mandato il `.json`). I valori entrano nel Diario, con scelta se sovrascrivere o riempire solo le celle vuote, e alimentano Volume e Storico 1RM.
 
 Note: i dati del cliente restano sul suo telefono finché non li invia; se il suo browser blocca il salvataggio locale, la pagina lo avvisa di inviare subito i carichi.
 

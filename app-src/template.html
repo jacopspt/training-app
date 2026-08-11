@@ -1134,6 +1134,15 @@ Distensioni Smith" style="flex:1;min-width:200px;min-height:62px;resize:vertical
 
 
 
+    <sc-if value="{{ invisoOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="background:rgba(216,168,48,.14);border:1.5px solid #e0c477;border-radius:16px;padding:12px 14px;margin-bottom:15px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span style="font-size:17px">📤</span>
+        <div style="flex:1;min-width:200px;font-size:12.5px;color:#3a414c;line-height:1.45"><b>Programma inviato al cliente.</b> {{ invisoTxt }}</div>
+        <button sc-camel-on-click="{{ onNuovaSchedaOra }}" style="background:#187878;border:1.5px solid #187878;color:#fff;border-radius:999px;padding:8px 14px;font-weight:800;font-size:12.5px;cursor:pointer">✅ Salva e inizia una nuova scheda</button>
+        <button sc-camel-on-click="{{ onIgnoraInviato }}" style="background:#fff;border:1px solid #dde3e3;color:#6a7280;border-radius:999px;padding:8px 13px;font-weight:700;font-size:12.5px;cursor:pointer">Continua a modificare</button>
+      </div>
+    </sc-if>
+
     <!-- TRACKER VOLUME -->
     <div style="background:#fff;border:1px solid #e5eaea;border-radius:16px;padding:12px 14px;margin-bottom:15px">
       <div sc-camel-on-click="{{ onToggleTrack }}" style="display:flex;align-items:center;gap:9px;flex-wrap:wrap;cursor:pointer">
@@ -2602,7 +2611,7 @@ class Component extends DCLogic {
       clienti:[makeCliente()],clienteId:null,cliSearch:'',
       volView:'confronto',cmpSel:{},cmpGroup:'all',rm1Sel:null,theme:'light',
       nutriDay:0,nutriView:'piano',promptOpen:false,genLoading:false,genErr:'',genProgress:null,genPromptCopy:'',
-      tests:{},testTab:'extra',mailHint:null,trackOpen:true,trackScope:'tutte'};
+      tests:{},testTab:'extra',mailHint:null,trackOpen:true,trackScope:'tutte',progInviato:null,progInArchivio:false};
     def.activeId=def.schede[0].id;def.clienteId=def.clienti[0].id;
     const validScheda=(s)=>s&&typeof s==='object'&&Array.isArray(s.esercizi)&&s.esercizi.every(e=>e&&Array.isArray(e.settimane)&&e.settimane.every(w=>w&&Array.isArray(w.serie)))&&(!s.cardio||(Array.isArray(s.cardio)&&s.cardio.every(c=>Array.isArray(c.settimane)&&c.settimane.every(w=>w&&Array.isArray(w.attivita)))));
     // Persistenza completa: clienti, schede di lavoro, log, note, storico programmi salvati, progressioni, modelli e DB esercizi restano in memoria.
@@ -2613,6 +2622,8 @@ class Component extends DCLogic {
       if(Array.isArray(p.cartella))m.cartella=p.cartella;
       if(typeof p.trackOpen==='boolean')m.trackOpen=p.trackOpen;
       if(p.trackScope==='tutte'||p.trackScope==='seduta')m.trackScope=p.trackScope;
+      if(p.progInviato&&typeof p.progInviato==='object')m.progInviato=p.progInviato;
+      m.progInArchivio=!!p.progInArchivio;
       if(Array.isArray(p.schedeSalvate))m.schedeSalvate=p.schedeSalvate.filter(sv=>sv&&Array.isArray(sv.schede)&&sv.schede.every(validScheda));
       if(p.esDB&&typeof p.esDB==='object'&&GRUPPI.every(g=>Array.isArray(p.esDB[g])))m.esDB=p.esDB;
       if(p.videoDB&&typeof p.videoDB==='object')m.videoDB=p.videoDB;
@@ -2666,7 +2677,7 @@ class Component extends DCLogic {
   mutCardio(cid,fn){this.mutAct(s=>Object.assign({},s,{cardio:(s.cardio||[]).map(c=>c.id===cid?fn(c):c)}));}
 
   // nav
-  onTab=(e)=>this.setState({tab:e.currentTarget.dataset.t});
+  onTab=(e)=>{const t=e.currentTarget.dataset.t;this.setState({tab:t},()=>{if(t==='schede')this._forseNuovaScheda();});};
   onPanel=(e)=>{const p=e.currentTarget.dataset.p;this.setState(st=>({panel:st.panel===p?null:p}));};
   onClosePanel=()=>this.setState({panel:null});
   onInstall=()=>{if(this._dp)this._dp.prompt();else alert('Per installare:\n• iPhone (Safari): Condividi → Aggiungi a Home\n• Android (Chrome): menu ⋮ → Installa app\n• Desktop: icona installa nella barra indirizzi');};
@@ -2891,11 +2902,11 @@ class Component extends DCLogic {
   onCloseSaveModal=()=>this.setState({saveModal:false});
   onSaveName=(e)=>this.setState({saveName:e.target.value});
   onToggleSaveScheda=(e)=>{const id=e.currentTarget.dataset.id;this.setState(st=>({saveSel:Object.assign({},st.saveSel,{[id]:!st.saveSel[id]})}));};
-  onConfirmSave=()=>{this.setState(st=>{const inc=st.schede.filter(s=>st.saveSel[s.id]);if(!inc.length)return {saveModal:false};const cid=st.saveClienteId||'';const cl=st.clienti.find(c=>c.id===cid);const item={id:uid(),nome:(st.saveName||'Schede').trim(),data:new Date().toLocaleDateString('it-IT'),schede:clone(inc),clienteId:cid,atleta:cl?cliLabel(cl):''};const fresh=makeScheda('Scheda A');return {schedeSalvate:st.schedeSalvate.concat([item]),saveModal:false,schede:[fresh],activeId:fresh.id,logs:{},noteSessione:{}};},()=>{const sv=this.state.schedeSalvate[this.state.schedeSalvate.length-1];this._toast(sv&&sv.atleta?('✓ Assegnato a '+sv.atleta+' — Schede svuotate, pronte per una nuova creazione'):'✓ Salvato in Schede salvate — pronte per una nuova creazione');});};
+  onConfirmSave=()=>{this.setState(st=>{const inc=st.schede.filter(s=>st.saveSel[s.id]);if(!inc.length)return {saveModal:false};const cid=st.saveClienteId||'';const cl=st.clienti.find(c=>c.id===cid);const item={id:uid(),nome:(st.saveName||'Schede').trim(),data:new Date().toLocaleDateString('it-IT'),schede:clone(inc),clienteId:cid,atleta:cl?cliLabel(cl):''};const fresh=makeScheda('Scheda A');return {schedeSalvate:st.schedeSalvate.concat([item]),saveModal:false,schede:[fresh],activeId:fresh.id,logs:{},noteSessione:{},progInviato:null,progInArchivio:false};},()=>{const sv=this.state.schedeSalvate[this.state.schedeSalvate.length-1];this._toast(sv&&sv.atleta?('✓ Assegnato a '+sv.atleta+' — Schede svuotate, pronte per una nuova creazione'):'✓ Salvato in Schede salvate — pronte per una nuova creazione');});};
   onUnassignSalvata=(e)=>{const id=e.currentTarget.dataset.id;const sv=this.state.schedeSalvate.find(x=>x.id===id);if(!sv)return;if(!confirm('Togliere "'+sv.nome+'" dalla cartella di questo atleta?\nIl programma resta tra le schede salvate (💾), non assegnato.'))return;
     this.setState(st=>({schedeSalvate:st.schedeSalvate.map(x=>x.id===id?Object.assign({},x,{clienteId:'',atleta:''}):x)}));this._toast('Programma tolto dalla cartella');};
   onAssignSalvata=(e)=>{const id=e.currentTarget.dataset.id;const cid=e.target.value;this.setState(st=>{const cl=st.clienti.find(c=>c.id===cid);const schedeSalvate=st.schedeSalvate.map(sv=>sv.id===id?Object.assign({},sv,{clienteId:cid,atleta:cl?cliLabel(cl):''}):sv);return {schedeSalvate};});};
-  onLoadSalvata=(e)=>{const id=e.currentTarget.dataset.id;const hasWork=this.state.schede.some(s=>s.esercizi.some(x=>x.nome));if(hasWork&&!confirm('Le schede di lavoro attuali verranno sostituite.\nSe non le hai salvate in 📁 Salvate andranno perse.\n\nContinuare?'))return;this.setState(st=>{const sv=st.schedeSalvate.find(x=>x.id===id);if(!sv)return {};const cl=sv.schede.map(s=>Object.assign({},clone(s),{id:uid()}));const upd={schede:cl,activeId:cl[0].id,tab:'schede',panel:null};if(sv.clienteId&&st.clienti.some(c=>c.id===sv.clienteId))upd.clienteId=sv.clienteId;return upd;});};
+  onLoadSalvata=(e)=>{const id=e.currentTarget.dataset.id;const hasWork=this.state.schede.some(s=>s.esercizi.some(x=>x.nome));if(hasWork&&!confirm('Le schede di lavoro attuali verranno sostituite.\nSe non le hai salvate in 📁 Salvate andranno perse.\n\nContinuare?'))return;this.setState(st=>{const sv=st.schedeSalvate.find(x=>x.id===id);if(!sv)return {};const cl=sv.schede.map(s=>Object.assign({},clone(s),{id:uid()}));const upd={schede:cl,activeId:cl[0].id,tab:'schede',panel:null,progInArchivio:true,progInviato:null};if(sv.clienteId&&st.clienti.some(c=>c.id===sv.clienteId))upd.clienteId=sv.clienteId;return upd;});};
   onDelSalvata=(e)=>{const id=e.currentTarget.dataset.id;const sv=this.state.schedeSalvate.find(x=>x.id===id);if(!sv)return;if(!confirm('Eliminare il programma salvato "'+sv.nome+'"?'))return;const snap=clone(sv);this.setState(st=>({schedeSalvate:st.schedeSalvate.filter(x=>x.id!==id)}));this._toast('Programma eliminato',()=>this.setState(st=>({schedeSalvate:st.schedeSalvate.concat([snap])})));};
 
   // progressioni
@@ -3052,8 +3063,9 @@ class Component extends DCLogic {
     if(!this.state.schede.some(s=>s.esercizi.some(x=>x.nome))){this._toast('La scheda di lavoro è vuota');return;}
     this._toast('Preparo la scheda…');
     const f=await this._fileScheda();
-    if(await this._condividiScheda(f,'Ecco la tua scheda di allenamento. Aprila con il browser: trovi il programma, i video e il diario da compilare.')){this._toast('📤 Scheda condivisa');return;}
+    if(await this._condividiScheda(f,'Ecco la tua scheda di allenamento. Aprila con il browser: trovi il programma, i video e il diario da compilare.')){this._segnaInviato();this._toast('📤 Scheda condivisa');return;}
     this._scaricaScheda(f);
+    this._segnaInviato();
     this._toast('📤 «'+f.nome+'» scaricata — mandala al cliente su WhatsApp come documento (📎 → Documento) o allegala alla mail');
   };
   onMailCliente=async()=>{
@@ -3068,9 +3080,30 @@ class Component extends DCLogic {
     this._toast('Preparo la scheda…');
     const f=await this._fileScheda();
     this._scaricaScheda(f);
+    this._segnaInviato();
     this.setState({mailHint:{nome:f.nome,email:em,aperta:!!w}});
   };
   onCloseMailHint=()=>this.setState({mailHint:null});
+  _segnaInviato(){
+    const cli=this.activeCli();
+    this.setState({progInviato:{a:(cliLabel(cli)||''),quando:new Date().toLocaleDateString('it-IT')}});
+  }
+  // rientrando in Schede: se il programma e' gia' in archivio ed e' stato
+  // mandato, si riparte da zero. Con un annulla a portata di mano.
+  _forseNuovaScheda(){
+    const st=this.state;
+    if(!st.progInviato||!st.progInArchivio)return;
+    if(!st.schede.some(s=>s.esercizi.some(x=>x.nome)))return;
+    const prec={schede:clone(st.schede),activeId:st.activeId,logs:clone(st.logs),
+      noteSessione:clone(st.noteSessione),progInviato:st.progInviato,progInArchivio:true};
+    const fresh=makeScheda('Scheda A');
+    const a=st.progInviato.a;
+    this.setState({schede:[fresh],activeId:fresh.id,logs:{},noteSessione:{},progInviato:null,progInArchivio:false});
+    this._toast('✨ Schede pronte per un nuovo programma'+(a?(' — quello per '+a+' è in 📁 Salvate'):' — il precedente è in 📁 Salvate'),
+      ()=>this.setState(prec));
+  }
+  onNuovaSchedaOra=()=>{this.setState({progInviato:null},()=>this.onOpenSaveModal());};
+  onIgnoraInviato=()=>this.setState({progInviato:null});
   onToggleTrack=()=>this.setState(st=>({trackOpen:!st.trackOpen}));
   // ferma il click: l'intestazione che lo contiene aprirebbe e chiuderebbe il pannello
   onTrackScope=(e)=>{e.stopPropagation();this.setState({trackScope:e.currentTarget.dataset.v});};
@@ -3557,6 +3590,9 @@ table{width:100%;border-collapse:collapse;font-size:9px}th{background:#183048;co
     out.onExportCliente=this.onExportCliente;out.onMailCliente=this.onMailCliente;out.onImportRisposta=this.onImportRisposta;out.onPasteRisposta=this.onPasteRisposta;
     out.allDbNames=GRUPPI.reduce((a,g)=>a.concat((st.esDB[g]||[]).map(n=>({v:n}))),[]);
 
+    out.invisoOpen=!!(st.progInviato&&!st.progInArchivio);
+    out.invisoTxt=st.progInviato?('Inviato'+(st.progInviato.a?(' a '+st.progInviato.a):'')+' il '+st.progInviato.quando+'. Salvalo in archivio: la sezione si svuota e sei pronto per il prossimo.'):'';
+    out.onNuovaSchedaOra=this.onNuovaSchedaOra;out.onIgnoraInviato=this.onIgnoraInviato;
     out.onToggleTrack=this.onToggleTrack;out.trackOpen=!!st.trackOpen;out.trackChiuso=!st.trackOpen;
     out.trackBtn=st.trackOpen?'▾ Nascondi':'▸ Mostra';
     out.trackBtnTitle=st.trackOpen?'Chiudi il tracker del volume':'Riapri il tracker del volume';
